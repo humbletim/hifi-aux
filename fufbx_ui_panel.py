@@ -57,6 +57,7 @@ def _selectBonesinEditMode(reg):
     armature = bpy.data.armatures[0]
     obj = [o for o in bpy.data.objects if o.data == armature][0]
     obj.select = True
+    bpy.context.scene.objects.active = obj
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.armature.select_all(action='DESELECT')
 
