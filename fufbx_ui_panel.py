@@ -1,4 +1,5 @@
 ##############################################################################
+## fufbx_show_popup.py v0.0.3
 ## example UI panel to perform corrective surgery on an avatar model
 ## copyright (c) 2015 tim dedischew
 ## released under the same terms as blender (GPL v2+)
@@ -42,8 +43,12 @@ class FixDotsInNames(bpy.types.Operator):
 
         msg = YELL(affected, prefix="renamed")
 
-        # this pops up a little alert box near the mouse
-        self.report({'ERROR'}, msg)
+        if bpy.context.scene.fufbx_show_popup:
+            # this pops up a little alert box near the mouse
+            self.report({'ERROR'}, msg)
+        else:
+            # this displays in the menu bar area
+            self.report({'INFO'}, "{0}: {1:d} things affected".format("._:", len(affected)))
 
         return {'FINISHED'}
 
@@ -52,13 +57,56 @@ class FixDotsInNames(bpy.types.Operator):
 
 def _selectBonesinEditMode(reg):
     """ pass an uncompiled regex-like string in to select those bones """
-    bpy.ops.object.mode_set(mode='OBJECT')
+    if bpy.context.mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
-    armature = bpy.data.armatures[0]
-    obj = [o for o in bpy.data.objects if o.data == armature][0]
-    obj.select = True
+
+    # select the first visible object with an armature
+    obj = [o for o in bpy.context.visible_objects
+           if isinstance(o.data, bpy.types.Armature)
+           ][0]
+    armature = obj.data
+    console.info("armature: "+str(armature))
+    console.warn("object: "+str(obj))
+
+    # the active object determines the EDIT target
     bpy.context.scene.objects.active = obj
+
+    # also needs to be "selected"
+    obj.select = True
+    
     bpy.ops.object.mode_set(mode='EDIT')
+
+    assert(bpy.context.mode == 'EDIT_ARMATURE')
+
+    if bpy.context.scene.fufbx_restore_selection:
+        # having a bone selected is useful to see the color normal,
+        #   so attempt to restore selection after we're done
+        previous = {
+            'head': [b for b in armature.edit_bones if b.select_head],
+            'tail': [b for b in armature.edit_bones if b.select_tail],
+            'bone': [b for b in armature.edit_bones if b.select],
+            'length': -1
+        }
+        previous['length'] = (
+            len(previous['head']) +
+            len(previous['tail']) +
+            len(previous['bone']
+        )
+        def restore():
+            if previous and previous['length']:
+                bpy.ops.armature.select_all(action='DESELECT')
+                for b in previous['bone']:
+                    b.select = True
+                for b in previous['head']:
+                    b.select_head = True
+                for b in previous['tail']:
+                    b.select_tail = True
+        restore_selection = restore
+    else:
+        restore_selection = False
+    
+    # clear any selected bones
     bpy.ops.armature.select_all(action='DESELECT')
 
     affected = []
@@ -66,41 +114,82 @@ def _selectBonesinEditMode(reg):
     import re
     regex = re.compile(reg, re.IGNORECASE)
 
-    for b in armature.edit_bones:
+    # should this be limited to only deform bones??
+    deforms = [b for b in armature.edit_bones if b.use_deform]
+    for b in deforms:
         if regex.search(b.name):
             affected.append(b)
+            b.select_head = True
             b.select = True
+            b.select_tail = True
+    return affected, restore_selection
 
-    return affected
+# make _selectBonesinEditMode reachable to debug from the Python Console
+setattr(bpy.utils, '_selectBonesinEditMode', _selectBonesinEditMode)
 
 class ArmsAndHands(bpy.types.Operator):
-    bl_idname = PREFIX + ".fix_arms_and_hands"
     bl_label = "Arms and Hands Roll -Z Global"
+    axis = bpy.props.StringProperty(default="GLOBAL_NEG_Z")
+
+    bl_idname = PREFIX + ".fix_arms_and_hands"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        affected = _selectBonesinEditMode( "arm|hand|palm" )
-        #bpy.ops.armature.calculate_roll(type="GLOBAL_NEG_Z")
-        msg = YELL(affected, prefix="seleted only for now")
+        affected, restore_selection = _selectBonesinEditMode( "arm|hand|palm" )
+
+        if self.axis == 'ZERO':
+            [ setattr(b,'roll',0) for b in affected ]
+        else:
+            bpy.ops.armature.calculate_roll(type=self.axis)
+
+        affected = [ u"{1:+.1f}\u00B0 {0}".format(b.name, b.roll) for b in affected]
+        msg = YELL(affected, prefix=self.axis)
         
-        # this pops up a little alert box near the mouse
-        self.report({'ERROR'}, msg)
+        if bpy.context.scene.fufbx_show_popup:
+            # digits are too much noise (do they even need to be rolled here?)
+            import re
+            msg2 = "\n".join([
+                m for m in msg.split("\n")
+                if not re.search(r"hand..", m, re.IGNORECASE)
+            ])
+            if msg != msg2:
+                msg2 += "\n(and fingers)"
+            # this pops up a little alert box near the mouse
+            self.report({'ERROR'}, msg2)
+        else:
+            # this displays in the menu bar area
+            self.report({'INFO'}, "{0}: {1:d} bones affected".format(self.axis, len(affected)))
+
+        restore_selection and restore_selection()
 
         return {'FINISHED'}
 
 class LegsAndCenterOfMass(bpy.types.Operator):
-    bl_idname = PREFIX + ".fix_legs_and_cmass"
     bl_label = "Legs and Center of Mass (Hips, Spine, Neck, Head) Roll -Y Global"
+    axis = bpy.props.StringProperty(default="GLOBAL_NEG_Y")
+
+    bl_idname = PREFIX + ".fix_legs_and_cmass"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        affected = _selectBonesinEditMode( "leg|hips|spine|neck|head" )
-        # bpy.ops.armature.calculate_roll(type="GLOBAL_NEG_Y")
+        affected, restore_selection = _selectBonesinEditMode( "leg|hips|spine|neck|head|face|thigh|shin" )
 
-        msg = YELL(affected, prefix="selected only for now")
-        
-        # this pops up a little alert box near the mouse
-        self.report({'ERROR'}, msg)
+        if self.axis == 'ZERO':
+            [ setattr(b,'roll',0) for b in affected ]
+        else:
+            bpy.ops.armature.calculate_roll(type=self.axis)
+
+        affected = [ u"{1:+.1f}\u00B0 {0}".format(b.name, b.roll) for b in affected]
+        msg = YELL(affected, prefix=self.axis)
+
+        if bpy.context.scene.fufbx_show_popup:
+            # this pops up a little alert box near the mouse
+            self.report({'ERROR'}, msg)
+        else:
+            # this displays in the menu bar area
+            self.report({'INFO'}, "{0}: {1:d} bones affected".format(self.axis, len(affected)))
+
+        restore_selection and restore_selection()
 
         return {'FINISHED'}
 
@@ -114,20 +203,47 @@ class FUFBXPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = PREFIX
+    
+    bpy.types.Scene.fufbx_show_popup = bpy.props.BoolProperty(name = "show_popup", default = True)
+    bpy.types.Scene.fufbx_restore_selection = bpy.props.BoolProperty(name = "restore_selection", default = False)
 
+    def __init__(self, *args, **kw):
+        super(FUFBXPanel, self).__init__(*args, **kw)
+        
     def draw(self, context):
         layout = self.layout
+        layout.prop(bpy.context.scene, property='fufbx_show_popup', text="verbose mode")
+        layout.prop(bpy.context.scene, property='fufbx_restore_selection', text="restore bone selection")
+
         layout.label(text="Hacks:")
 
         split = layout.split()
         col = split.column()
+        
         col.operator(PREFIX+".fix_dots_in_names")
 
+        layout.label(text="Center of Mass:")
+        layout.operator(PREFIX+".fix_legs_and_cmass")
         split = layout.split()
+        for _ in ['X','Y','Z']:
+            col = split.column()
+            col.operator(PREFIX+".fix_legs_and_cmass",text="-"+_).axis = 'GLOBAL_NEG_'+_
+            col = split.column()
+            col.operator(PREFIX+".fix_legs_and_cmass",text="+"+_).axis = 'GLOBAL_POS_'+_
         col = split.column()
-        col.operator(PREFIX+".fix_arms_and_hands")
-        col = split.column(align=True)
-        col.operator(PREFIX+".fix_legs_and_cmass")
+        col.operator(PREFIX+".fix_legs_and_cmass",text=u"0\u00B0").axis = 'ZERO'
+
+        layout.label(text="Arms and Hands:")
+        layout.operator(PREFIX+".fix_arms_and_hands")
+        split = layout.split()
+        for _ in ['X','Y','Z']:
+            col = split.column()
+            col.operator(PREFIX+".fix_arms_and_hands",text="-"+_).axis = 'GLOBAL_NEG_'+_
+            col = split.column()
+            col.operator(PREFIX+".fix_arms_and_hands",text="+"+_).axis = 'GLOBAL_POS_'+_
+        col = split.column()
+        col.operator(PREFIX+".fix_arms_and_hands",text=u"0\u00B0").axis = 'ZERO'
+
 
 ##############################################################################
 ## module stuff
@@ -153,7 +269,7 @@ def unregister():
 
 def YELL(affected, **kw):
     prefix = kw.get("prefix", "affected")
-    empty = kw.get("empty", "hurray!")
+    empty = kw.get("empty", "(nothing affected)")
    
     # this outputs above the main menu (to Blender's hidden log output pane!)
     [ console.info(str(x)) for x in affected ]
