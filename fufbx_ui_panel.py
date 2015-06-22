@@ -1,5 +1,5 @@
 ##############################################################################
-## fufbx_show_popup.py v0.0.3
+## fufbx_show_popup.py v0.0.4
 ## example UI panel to perform corrective surgery on an avatar model
 ## copyright (c) 2015 tim dedischew
 ## released under the same terms as blender (GPL v2+)
@@ -127,6 +127,13 @@ def _selectBonesinEditMode(reg):
 # make _selectBonesinEditMode reachable to debug from the Python Console
 setattr(bpy.utils, '_selectBonesinEditMode', _selectBonesinEditMode)
 
+def safe_calculate_roll(type='GLOBAL_NEG_Z'):
+    try:
+        bpy.ops.armature.calculate_roll(type=type)
+    except:
+        # earlier blender versions only have one 'Z' not GLOBAL_NEG/POS...
+        bpy.ops.armature.calculate_roll(type=type[-1])
+        
 class ArmsAndHands(bpy.types.Operator):
     bl_label = "Arms and Hands Roll -Z Global"
     axis = bpy.props.StringProperty(default="GLOBAL_NEG_Z")
@@ -140,7 +147,7 @@ class ArmsAndHands(bpy.types.Operator):
         if self.axis == 'ZERO':
             [ setattr(b,'roll',0) for b in affected ]
         else:
-            bpy.ops.armature.calculate_roll(type=self.axis)
+            safe_calculate_roll(type=self.axis)
 
         affected = [ u"{1:+.1f}\u00B0 {0}".format(b.name, b.roll) for b in affected]
         msg = YELL(affected, prefix=self.axis)
@@ -177,7 +184,7 @@ class LegsAndCenterOfMass(bpy.types.Operator):
         if self.axis == 'ZERO':
             [ setattr(b,'roll',0) for b in affected ]
         else:
-            bpy.ops.armature.calculate_roll(type=self.axis)
+            safe_calculate_roll(type=self.axis)
 
         affected = [ u"{1:+.1f}\u00B0 {0}".format(b.name, b.roll) for b in affected]
         msg = YELL(affected, prefix=self.axis)
@@ -207,11 +214,16 @@ class FUFBXPanel(bpy.types.Panel):
     bpy.types.Scene.fufbx_show_popup = bpy.props.BoolProperty(name = "show_popup", default = True)
     bpy.types.Scene.fufbx_restore_selection = bpy.props.BoolProperty(name = "restore_selection", default = False)
 
+    blender_version = bpy.app.version[0]+bpy.app.version[1]/100.0
+    
     def __init__(self, *args, **kw):
         super(FUFBXPanel, self).__init__(*args, **kw)
         
     def draw(self, context):
         layout = self.layout
+        if self.blender_version < 2.74:
+            layout.label(text="!!! NOTE: this was designed for blender 2.74+ only")
+
         layout.prop(bpy.context.scene, property='fufbx_show_popup', text="verbose mode")
         layout.prop(bpy.context.scene, property='fufbx_restore_selection', text="restore bone selection")
 
