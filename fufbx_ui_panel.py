@@ -91,7 +91,7 @@ def _selectBonesinEditMode(reg):
         previous['length'] = (
             len(previous['head']) +
             len(previous['tail']) +
-            len(previous['bone']
+            len(previous['bone'])
         )
         def restore():
             if previous and previous['length']:
