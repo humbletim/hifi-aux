@@ -1,9 +1,11 @@
 ##############################################################################
-## fufbx_show_popup.py v0.0.4
+## fufbx_show_popup.py
 ## example UI panel to perform corrective surgery on an avatar model
 ## copyright (c) 2015 tim dedischew
 ## released under the same terms as blender (GPL v2+)
 ##############################################################################
+
+VERSION = (0, 0, 4)
 
 import bpy
 
@@ -205,7 +207,8 @@ class LegsAndCenterOfMass(bpy.types.Operator):
 
 class FUFBXPanel(bpy.types.Panel):
     """Creates a Panel in the """+PREFIX+""" context of the properties editor"""
-    bl_label = "FUFBX (Functional User FBX) Demo"
+    _version = ".".join([str(x) for x in VERSION])
+    bl_label = "FUFBX (Functional User FBX) v" + _version
     bl_idname = PREFIX.upper() + "_PT_fufbx"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
