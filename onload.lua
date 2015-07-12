@@ -1,1 +1,1 @@
-console:warn("... __SRC__ HI FROM LUA "..tostring(_VERSION))
+console:warn("... "..tostring(__SRC__).."HI FROM LUA: "..tostring(_VERSION))
