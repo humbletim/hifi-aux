@@ -1,8 +1,7 @@
 {
-  "hash": __GIT__,
-  "src": __SRC__,
+  "hash": "__GIT__",
+  "src": "__SRC__",
   "properties": {
-    "color": Thing.hex2c("#0000ff"),
-    "name": Thing.uniq(__GISTTITLE__)
+    "color": "#0000ff"
   }
 }

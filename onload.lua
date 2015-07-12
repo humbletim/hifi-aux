@@ -1,0 +1,1 @@
+console:warn("... __SRC__ HI FROM LUA "..tostring(_VERSION))
