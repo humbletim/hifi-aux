@@ -1,4 +1,4 @@
-console.info "#{__SRC__} responding to a click! #{ evt }"
+console.info "#{__SRC__} responding to a click! #{ evt.shiftKey } #{@scale}"
 if evt.shiftKey
     @scale *= 2
 else
