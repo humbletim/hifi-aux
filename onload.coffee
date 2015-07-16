@@ -1,2 +1,2 @@
-if not @name
+if not @live.name
   @set 'name', @uuid
