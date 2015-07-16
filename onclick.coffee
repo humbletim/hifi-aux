@@ -5,4 +5,4 @@ if not @child
     HiFi.create(type:@live.type, name: kid, position: glm.vec3(@live.position)['+'](glm.vec3(.5)))
 
 here = glm.vec3(@live.position)
-@child.set position: HiFi.position['-'](here)['*'](2)['+'](HiFi.position)
+@child.set position: here['-'](HiFi.position)['*'](2)['+'](HiFi.position)
