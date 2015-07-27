@@ -58,8 +58,8 @@ class Orb extends Thing
 
   onclick: (evt) ->
     if @selected
-      # show user some feedback even when already selected (at least the first time re-selecting)                                                                                                                                                                                                                                                                                                                                                                                                
-      @auto.color = Orb.colors.active
+      # show user some feedback (even when already selected -- in response to re-selecting)                                                                                                                                                                                                                                                                                                                                                                                                
+      @auto.color = @auto.color is Orb.colors.active and Orb.colors.selected or Orb.colors.active
     else
       @selected = true
 
