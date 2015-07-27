@@ -9,6 +9,7 @@ if @_down
   if ((len > .1 or evt.altKey) and len < 3)
     @auto.position = p2
     if not @_down.buddies
+      @_down.buddies = []
       # query here in case some became deselected just prior to dragging...
       for o in @others when o.selected
         o.position = o.auto.position
