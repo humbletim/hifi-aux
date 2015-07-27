@@ -8,6 +8,11 @@ if @_down
   len = glm.length(displace)
   if ((len > .1 or evt.altKey) and len < 3)
     @auto.position = p2
+    if not @_down.buddies
+      # query here in case some became deselected just prior to dragging...
+      for o in @others when o.selected
+        o.position = o.auto.position
+        @_down.buddies.push(o)
     for o in @_down.buddies
       p = glm.vec3(o.position)
       p2 = p['-'](displace)
