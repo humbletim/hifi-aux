@@ -2,10 +2,12 @@ class Orb extends Thing
   @$name: 'Orb'
 
   constructor: (@uuid) ->
+    console.info "Orb::constructor #{@uuid}"
     super @uuid
     if @uuid and not @server('isorb')
       # temporary "earmarking" of peer'd Orbs                                                                                                                                                                                                                                                                                                                                                                                                                         
       @server 'isorb', __GIST__
+    console.info "//Orb::constructor #{@uuid}"
 
   @colors:
     ambient: HiFi.c2hex '#333'
