@@ -71,7 +71,7 @@ class Orb extends Thing
     if not evt.shiftKey
       for peer in @others when peer.selected
         peer.selected = false
-    console.info "#{HiFi.username} clicked #{evt.target} @ [#{evt.pageX}, #{evt.pageY}]"
+    console.info "#{HiFi.username} clicked #{evt.target} @ [#{evt.pageX}, #{evt.pageY}, #{evt.button}]"
 
   onload: (evt) ->
     if not @data.initialized
