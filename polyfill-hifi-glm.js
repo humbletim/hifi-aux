@@ -1,9 +1,3 @@
-// .bind polyfill
-Function.prototype.bind=(function(){}).bind||function(b){if(typeof this!=="function"){
-  throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-  }function c(){}var a=[].slice,f=a.call(arguments,1),e=this,d=function(){return e.apply(
-    this instanceof c?this:b||window,f.concat(a.call(arguments)));};
-    c.prototype=this.prototype;d.prototype=new c();return d;};
-    
+Function.prototype.bind=function(){var fn=this,a=[].slice.call(arguments),o=a.shift();return function(){return fn.apply(o,a.concat([].slice.call(arguments)));};};
 $GLM_console_log = function() { print(["[glm]"].concat([].slice.call(arguments)).join(" ")); };
 Script.include('http://humbletim.github.io/glm-js/code/build/glm-gl-matrix.min.js')
