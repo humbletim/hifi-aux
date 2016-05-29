@@ -4,7 +4,7 @@
 // load three.js source code from cdnjs.com
 var src = (
    function(xhr){
-      xhr.open("GET", 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r73/three.js', false);
+      xhr.open("GET", 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.js', false);
       xhr.send();
       return xhr.responseText;
    }
