@@ -1,6 +1,9 @@
-print('hostname:  ', location.hostname);
-print('canRez:    ', Entities.canRez());
-print('canRezTmp: ', Entities.canRezTmp());
+print('hostname:       ', location.hostname);
+print('logged in:      ', Account.isLoggedIn());
+print('username:       ', Account.getUsername());
+print('canAdjustLocks: ', Entities.canAdjustLocks());
+print('canRez:         ', Entities.canRez());
+print('canRezTmp:      ', Entities.canRezTmp());
 
 var lifetimes = [ undefined, -1, 0, 1, 3, 5, 3600, 3601 ];
 
