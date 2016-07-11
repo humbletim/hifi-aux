@@ -25,7 +25,7 @@
                 this.heart = false;
             }
         },
-        clickDownOnEntity: function(uuid, evt) {
+        _clickDownOnEntity: function(uuid, evt) {
             print('clickDownOnEntity', uuid, !!this.heart);
             if (this.heart)
                 this.die();
@@ -42,6 +42,7 @@
             print('... applying userData properties:', JSON.stringify(parentedProps));
             Entities.editEntity(uuid, parentedProps);
             this.live();
+            this.clickDownOnEntity = this._clickDownOnEntity; // if we made it this far, enable onclick toggling
         }
     };
 })
