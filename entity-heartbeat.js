@@ -37,6 +37,8 @@
             this.uuid = uuid;
             var ent = Entities.getEntityProperties(uuid);
             var parentedProps = JSON.parse(ent.userData);
+            if (parentedProps.parentID !== MyAvatar.sessionUUID)
+                return print('... parentedProps.parentID !== MyAvatar.sessionUUID -- bailing.');
             print('... applying userData properties:', JSON.stringify(parentedProps));
             Entities.editEntity(uuid, parentedProps);
             this.live();
