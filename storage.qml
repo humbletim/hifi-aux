@@ -68,7 +68,11 @@ Column {
                     padding.right: -4
                     padding.bottom: -6
                     corner: Item { visible: false }
-                    scrollBarBackground: Item { visible: false }
+                    scrollBarBackground: Item {
+                        visible: false
+                        implicitWidth: 10
+                        implicitHeight: 10
+                    }
                     incrementControl: Item { visible: false }
                     decrementControl: Item { visible: false }
                     handle: Item {
