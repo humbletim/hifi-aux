@@ -334,8 +334,8 @@ Column {
                         var ob = this.getObject(key, null);
                         if (ob === null)
                             return ob;
-                        if (key in ob)
-                            return ob[key];
+                        if (property in ob)
+                            return ob[property];
                     } catch(e) {
                         this.log('getProperty failed for key,prop: ', key, property, e);
                         return default_value;
@@ -344,6 +344,7 @@ Column {
                 delete: function(key, value) { return $delete.apply(this, arguments); },
                 set: function(key, value) { return $set.apply(this, arguments); },
                 setObject: function(key, value) {
+                    this.log('setObject', key, '...');
                     try {
                         var json = JSON.stringify(value,0,2);
                         return this.set(key, json);

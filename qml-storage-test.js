@@ -16,10 +16,10 @@ var bluebirdURL = Script.resolvePath('hifi-bluebird.js') + '?' + cache_buster;
 
 Script.include(bluebirdURL);
 
-var log = Script.print.bind(Script, '[qml-storage-test]');
+var log = print.bind(this, '[qml-storage-test]');
 
 // TODO: refactor the different puzzle pieces into own modules
-var storage = {
+storage = {
     // signal handlers
     messageReceived: function onmsg(channel, message, sender, local) {
         if (channel == 'qml-storage' && local) {
@@ -51,7 +51,10 @@ var storage = {
                     log('binding SQL.'+command);
                     storage.SQL[command] = storage.rpc.bind(storage, command);
                 });
-                storage.SQL.ready(commands);
+                storage.SQL.ready.forEach(function(f) {
+                    try { f.call(storage.SQL, commands); } catch(e) { log('error in ready handler: ', e); }
+                });
+                storage.SQL.ready.splice(0, storage.SQL.ready.length);
             }
         }
     },
@@ -59,7 +62,7 @@ var storage = {
         log('fromQml', typeof ctx, JSON.stringify(ctx));
         if (ctx.id in this.callbacks) {
             var dfd = this.callbacks[ctx.id];
-            log('rpc...', dfd);
+            log('rpc...', ctx.id, dfd);
             if (ctx.error)
                 dfd.reject(new Error(ctx.error));
             else
@@ -73,7 +76,7 @@ var storage = {
         var args = [].slice.call(arguments, 1);
         var dfd = {
             message: {
-                id: 'rpc-'+func+'-'+(+ new Date).toString(36),
+                id: 'rpc-'+func+'-'+(+ new Date + Math.round(1e6*Math.random())).toString(36),
                 rpc: func,
                 args: args
             },
@@ -98,15 +101,15 @@ var storage = {
     // SQLite stuff -- this Object gets populated with the API commands (received async from the QML side during initialization)
     SQL: {
         commands: null,
-        ready: function() { log('ready'); },
+        ready: [function() { log('ready'); }],
         init: function() {
             if (this.commands)
-                return Promise.resolve(this.commands);
+                return Promise.resolve(this.commands).bind(this);
             return new Promise(function(resolve, reject) {
                 storage.rpc.exists;
-                storage.SQL.ready = resolve;
+                storage.SQL.ready.push(resolve);
                 log('waiting for storage-ready event from QML...');
-            }).timeout(5000)['catch'](function(err) {log(err); throw err; });
+            }).bind(this).timeout(5000)['catch'](function(err) {log(err); throw err; });
         }
     },
 
