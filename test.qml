@@ -18,11 +18,19 @@ Rectangle {
         property alias path: testPath.text
     }
 
-    // autostart test using last path (once window is fully-loaded)
+    signal sendToScript(var message);
+
+    // once window is fully-loaded, autostart the test using path from last run
     Connections {
-        target: parent.parent
+        target: root.parent.parent
         onParentChanged: {
-            parent.parent.title = 'Assets.getMapping test v%1'.arg($version);
+            var window = root.parent.parent;
+            console.info('window', window);
+            if (!window) return;
+            window.title = 'Assets.getMapping test v%1'.arg($version);
+            // if window is closed notify test harness to stop
+            window.onShownChanged.connect(sendToScript.bind(this, 'stop'));
+
             runTest(testPath.text)
         }
     }
