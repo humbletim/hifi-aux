@@ -22,9 +22,9 @@ Rectangle {
 
     // once window is fully-loaded, autostart the test using path from last run
     Connections {
-        target: root.parent.parent
+        target: parent
         onParentChanged: {
-            var window = root.parent.parent;
+            var window = parent && parent.parent;
             console.info('window', window);
             if (!window) return;
             window.title = 'Assets.getMapping test v%1'.arg($version);
