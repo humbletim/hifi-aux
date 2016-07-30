@@ -20,18 +20,24 @@ Rectangle {
 
     signal sendToScript(var message);
 
+    property var window: null
     // once window is fully-loaded, autostart the test using path from last run
+    Component.onCompleted: init()
     Connections {
-        target: parent
-        onParentChanged: {
-            var window = parent && parent.parent;
-            console.info('window', window);
-            if (!window) return;
-            window.title = 'Assets.getMapping test v%1'.arg($version);
-            // if window is closed notify test harness to stop
-            window.onShownChanged.connect(sendToScript.bind(this, 'stop'));
+        target: parent.parent
+        onParentChanged: init()
+    }
 
-            runTest(testPath.text)
+    function init() {
+        if (!window) {
+            window = parent && parent.parent;
+            console.info('window', window);
+            if (window) {
+                window.title = 'Assets.getMapping test v%1'.arg($version);
+                // if window is closed notify test harness to stop
+                window.onShownChanged.connect(sendToScript.bind(this, 'stop'));
+                runTest(testPath.text)
+            }
         }
     }
 
