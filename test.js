@@ -6,7 +6,7 @@
 
 window = new OverlayWindow({
     title: 'Assets.getMapping test.js/qml',
-    source: Script.resolvePath('test.qml#$##$#3'),
+    source: Script.resolvePath('test.qml'),
     width: 640,
     height: 240
 });
