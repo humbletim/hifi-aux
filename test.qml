@@ -11,7 +11,7 @@ import Qt.labs.settings 1.0
 
 Rectangle {
     id: root
-    readonly property var $version: '0.0.1'
+    readonly property var $version: '0.0.2'
 
     Settings {
         category: 'tests-getMapping'
