@@ -23,7 +23,7 @@ var port = new EinsteinRosenBridge(window, {
 
             // jQuery
             jQuery('.cameraModes button').removeClass('active');
-            jQuery('.cameraModes button.'+mode.replace(' ', '-')).addClass('active');            
+            jQuery('.cameraModes button.'+mode.replace(' ', '-')).addClass('active');
         },
         // example: allow Interface side to configure and/or flip a card w/jquery.flip
         flip: function(opts) {
@@ -37,13 +37,15 @@ var port = new EinsteinRosenBridge(window, {
         },
     },
 
-    // onload gets called once the bridge and shared methods are connected 
+    // onload gets called once the bridge and shared methods are connected
     onload: function(api) {
         // note: the "api" parameter is a reference to port.async
         // (everything defined by Interface will be attached to it)
-        
+
         // example: forward button clicks to the Interface side
-        jQuery('button').on('click', function(evt) {
+        jQuery('button')
+            .off('click.onload')
+            .on('click.onload', function(evt) {
             port.async.onclick({
                 id: evt.target.id,
                 x: evt.x,
@@ -65,6 +67,22 @@ var port = new EinsteinRosenBridge(window, {
 // set up card flipper
 jQuery(document).ready(function() { jQuery('.card').flip(); });
 
+// offline testing stubs (note: this HTML file can also be loaded into a Web Browser for design/testing)
+var testStubs = {
+    sendScriptEvent: function() {},
+    eventBridge: {
+        emitWebEvent: function(x) { console.info('emitWebEvent', x) },
+        scriptEventReceived: {
+            connect: function(f) { testStubs.sendScriptEvent = f; }
+        }
+    },
+    methods: ['onclick','setCameraMode','getCurrentLocation'],
+    setup: function() {
+        port._connect(this.eventBridge);
+        port._receive(JSON.stringify(port._make_event({rpc:'HELO', args:[{ methods: this.methods}]})));
+    }
+};
+
 </script>
 <style>
   body { margin: 0; padding: 0; font-family: sans; font-size: .8em; overflow: hidden; }
@@ -73,7 +91,7 @@ jQuery(document).ready(function() { jQuery('.card').flip(); });
 </style>
   </head>
     <body>
-      
+
       <fieldset class='cameraModes'>
         <legend>Camera.mode</legend>
         <button class='third-person' onclick='port.async.setCameraMode(this.innerText)'>third person</button>

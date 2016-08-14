@@ -1,8 +1,8 @@
 //
 //    EinsteinRosenBridge -- Interface Client script example
-//    2016.08.01 humbletim 
+//    2016.08.01 humbletim
 //
- 
+
 Script.include(Script.resolvePath('EventBridgeAdapter.js'));
 
 // helper that generates a random web color
