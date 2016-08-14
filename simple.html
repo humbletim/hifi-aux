@@ -10,79 +10,101 @@
 
 function log() { console.info('[simple.html] ' + [].slice.call(arguments).join(' ')); };
 
-var port = new EinsteinRosenBridge(window, {
-    version: '0.0.0',
-    key: 'webside' + location.hash,
-
-    // methods attached here will be available to the Interface side...
-    shared: {
-        // example: listen for Camera mode updates from Interface side
-        modeUpdated: function(mode) {
-            // vanilla HTML5
-            document.querySelector('#cameraMode').innerHTML = mode;
-
-            // jQuery
-            jQuery('.cameraModes button').removeClass('active');
-            jQuery('.cameraModes button.'+mode.replace(' ', '-')).addClass('active');
-        },
-        // example: allow Interface side to configure and/or flip a card w/jquery.flip
-        flip: function(opts) {
-            jQuery('.card').flip(opts||false);
-            if (opts && opts.axis)
-                jQuery('.card .axis').text(opts.axis);
-        },
-        // example: let Interface side apply css styles through jQuery
-        css: function(selector, k, v) {
-            jQuery(selector).css(k, v);
-        },
-    },
-
-    // onload gets called once the bridge and shared methods are connected
-    onload: function(api) {
-        // note: the "api" parameter is a reference to port.async
-        // (everything defined by Interface will be attached to it)
-
-        // example: forward button clicks to the Interface side
-        jQuery('button')
-            .off('click.onload')
-            .on('click.onload', function(evt) {
-            port.async.onclick({
-                id: evt.target.id,
-                x: evt.x,
-                y: evt.y,
-                button: evt.button
-            });
-        });
-
-        // get current location from Interface side
-        port.async.getCurrentLocation(function(err, loc) {
-            jQuery('#loc').text(loc.href);
-        });
-    },
-
-    // log any errors during bridge setup
-    onerror: function(err) { console.error('port.onerror:' + err); }
-});
-
-// set up card flipper
-jQuery(document).ready(function() { jQuery('.card').flip(); });
-
-// offline testing stubs (note: this HTML file can also be loaded into a Web Browser for design/testing)
-var testStubs = {
-    _sendScriptEvent: function() {},
-    recv: function(a,b) { this._sendScriptEvent(JSON.stringify(port._make_event(a,b))); },
-    eventBridge: {
-        emitWebEvent: function(x) { console.info('emitWebEvent', x) },
-        scriptEventReceived: {
-            connect: function(f) { testStubs._sendScriptEvent = f; }
-        }
-    },
-    methods: ['onclick','setCameraMode','getCurrentLocation'],
-    setup: function() {
-        port._connect(this.eventBridge);
-        port._receive(JSON.stringify(port._make_event({rpc:'HELO', args:[{ methods: this.methods}]})));
-    }
+window.onerror = function(e) {
+    log('window.onerror: ' + e);
+    vislog && vislog('<font color=red>'+e+'</font>');
 };
+
+var port, hifi;
+
+jQuery(document).ready(function() {
+    jQuery('.card').flip();
+    jQuery('button').prop('disabled', true);
+
+    port = new EinsteinRosenBridge(window, {
+        version: '0.0.0',
+        key: 'web-side' + location.hash,
+
+        // methods attached here will be available to the Interface side...
+        shared: {
+            // example: listen for Camera mode updates from Interface side
+            modeUpdated: function(mode) {
+                // vanilla HTML5
+                document.querySelector('#cameraMode').innerHTML = mode;
+
+                // jQuery
+                jQuery('.cameraModes button').removeClass('active');
+                jQuery('.cameraModes button.'+mode.replace(' ', '-')).addClass('active');
+            },
+            // example: allow Interface side to configure and/or flip a card w/jquery.flip
+            flip: function(opts) {
+                jQuery('.card').flip(opts||false);
+                if (opts && opts.axis)
+                    jQuery('.card .axis').text(opts.axis);
+            },
+            // example: let Interface side apply css styles through jQuery
+            css: function(selector, k, v) {
+                jQuery(selector).css(k, v);
+            },
+        },
+
+        // onload gets called once both the bridge and its shared methods are connected
+        onload: function(async) {
+            vislog('port.onload: ' + this, async.key);
+            vislog('shared methods:', async.methods.join(' | '));
+
+            window.hifi = async;
+
+            // example: forward button clicks to the Interface side
+            jQuery('button')
+                .off('click.onload')
+                .on('click.onload', function(evt) {
+                    hifi.onClick({
+                        id: evt.target.id,
+                        x: evt.x,
+                        y: evt.y,
+                        button: evt.button
+                    });
+                });
+
+            // get current location from Interface side
+            hifi.getCurrentLocation(function(err, loc) {
+                jQuery('#loc').text(err || loc.href);
+            });
+        },
+
+        // log any errors during bridge setup
+        onerror: function(err) {
+            console.error('port.onerror:' + err);
+            vislog('<font color=red>error: ' + err + '</font>');
+        },
+
+        onopen: function(readyState) {
+            console.info('port.onopen:' + readyState);
+            jQuery('button').prop('disabled', false);
+            vislog('opened ', this.$readyState);
+        },
+
+        onclose: function(reason) {
+            jQuery('button').prop('disabled', true);
+            vislog('closed ', reason, this.$readyState);
+        },
+
+        // "unhandled" (ie: non-shared rpc events) will be passed along to onmessage
+        onmessage: function(event) {
+            vislog('unhandled message: ' + JSON.stringify(event));
+        },
+    });
+
+    // if browsertest appears in the hash then load and provision the offline testing stubs
+    if (/browsertest/.test(location.hash)) {
+        _include('testStubs.js', function() {
+            console.info('instrumenting testing stubs (trapping port.onerror)', port.$readyState);
+            testStubs.setup(port);
+            vislog('//testStubs instrumented');
+        });
+    }
+});
 
 </script>
 <style>
@@ -95,8 +117,8 @@ var testStubs = {
 
       <fieldset class='cameraModes'>
         <legend>Camera.mode</legend>
-        <button class='third-person' onclick='port.async.setCameraMode(this.innerText)'>third person</button>
-        <button class='first-person' onclick='port.async.setCameraMode(this.innerText)'>first person</button>
+        <button class='third-person' onclick='hifi.setCameraMode(this.innerText)'>third person</button>
+        <button class='first-person' onclick='hifi.setCameraMode(this.innerText)'>first person</button>
         <b id='cameraMode' style='float:right'>...</b>
         <br />
         <small>(try changing the Camera mode using the View menu too)</i>
@@ -110,8 +132,10 @@ var testStubs = {
         <button id='button-4'>button 4</button>
       </fieldset>
 
-      <div id='errors' style='font-size:.8em;color:red'></div>
-      <script>onerror = function(e) { errors.innerHTML += e+'<br />'; };</script>
+      <div id='output'></div>
+      <script>
+        vislog = function() { output.innerHTML += [].slice.call(arguments).join(' ')+'<br />'; };
+      </script>
 
       <!-- jQuery flip example -->
       <style>
@@ -130,5 +154,5 @@ var testStubs = {
       </div>
       <!-- /jQuery flip example -->
 
-</body>
+    </body>
 </html>

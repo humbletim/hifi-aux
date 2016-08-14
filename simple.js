@@ -5,12 +5,6 @@
 
 Script.include(Script.resolvePath('EventBridgeAdapter.js'));
 
-// helper that generates a random web color
-function random_rgb() {
-    function r() { return ~~(Math.random()*0xff) };
-    return 'rgb('+[r(), r(), r()]+')';
-}
-
 // 1. create your OverlayWebWindow per usual:
 var window = new OverlayWebWindow({
     title: 'EinsteinRosenBridge Web Window',
@@ -19,6 +13,12 @@ var window = new OverlayWebWindow({
     height: 240
 });
 
+////note: EinsteinRosenBridge in theory also works with classic WebWindows:
+//  var window = new WebWindow('WebWin', Script.resolvePath('simple.html#'), 480, 240) ||
+//  window.setVisible(true);
+
+var webside; // shared Web-side methods
+
 // 2. open a wormhole by passing the window and your options to EinsteinRosenBridge constructor:
 var port = new EinsteinRosenBridge(window, {
     version: '0.0.0',
@@ -26,44 +26,63 @@ var port = new EinsteinRosenBridge(window, {
 
     // "shared methods" automatically become available to the Web side (see simple.html)
     shared: {
-        // example: let Web side set new Camera mode strings
+        // share access for configuring Camera.mode
         setCameraMode: Camera.setModeString,
 
-        // example: listen for DOM events from the Web side
-        onclick: function(evt) {
-            print('onclick!', JSON.stringify(evt));
+        // share access to the current hifi://location
+        getCurrentLocation: function() {
+            return Window.location;
+        },
+
+        // callback for receiving DOM events
+        onClick: function(evt) {
+            // generates a random web color
+            function random_rgb() {
+                function r() { return ~~(Math.random()*0xff) };
+                return 'rgb('+[r(), r(), r()]+')';
+            }
+
+            print('onClick!', JSON.stringify(evt));
             if (evt.id) {
-                // pick a random color (locally) and then have the Web side apply it for us...
-                port.async.css('#'+evt.id, {
-                    backgroundColor: random_rgb()
-                });
+                // generate a random color locally
+                // ... and applied it remotely using a jQuery.css proxy (that simple.html provides)
+                webside.css('#'+evt.id, { backgroundColor: random_rgb() });
             }
         },
 
-        // example: let Web side query current hifi://location
-        getCurrentLocation: function() {
-            return Window.location;
+        // example of experimental support for the Deferred "promise" pattern
+        asyncTest: function(x, y) {
+            // returning a port.Deferred lets you start some long-running or async operation
+            // ... and once finished later call either dfd.resolve(result) or dfd.reject(Error)
+            return port.Deferred(function(dfd) {
+                Script.setTimeout(function() {
+                    dfd.resolve(x+y);
+                    // dfd.reject(new Error('or could reject with an error'));
+                }, 1000);
+            });
         }
     },
 
-    onload: function(api) {
-        // api === port.async
+    onload: function(async) {
+        print('port.onload:' + this, async.key);
+        print('shared methods:', async.methods.join(' | '));
 
-        print('port.onload! ' + api.key);
+        webside = async;
 
-        // wiring example: keep Web side informed of all Camera mode changes
-        Camera.modeUpdated.connect(api.modeUpdated);
-        api.modeUpdated(Camera.mode);
+        // wiring example: this keeps the Web side informed of all Camera mode changes
+        Camera.modeUpdated.connect(webside.modeUpdated);
+        webside.modeUpdated(Camera.mode); // and value at startup
 
         // wiring example: switch the "axis" of the "jQuery flipper" (bottom) based on Camera mode
         Camera.modeUpdated.connect(function(mode) {
-            api.flip({ axis: /first/.test(mode) ? 'x' : 'y' });
+            webside.flip({ axis: /first/.test(mode) ? 'x' : 'y' });
         });
     },
 
-    onerror: function(err) {
-        console.error('port.onerror:' + err);
-    }
+    onerror: function(err) { print('port.onerror:' + err); },
+    onopen: function(readyState) { print('port.onopen:' + readyState); },
+    onclose: function(reason) { print('port.onclose:' + reason); },
+    onmessage: function(event) { print('port.onmessage (unhandled):' + JSON.stringify(event)); },
 });
 
 window.closed.connect(Script, 'stop');
