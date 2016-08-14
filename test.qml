@@ -55,6 +55,7 @@ Rectangle {
             output.text += '\n... verifying expectation via Assets.getAllMappings()';
             Assets.getAllMappings(function(err, map) {
                 var sample, found;
+                console.info(JSON.stringify(map,0,2));
                 for(var p in map) {
                     // track shortest ATP path to potentially recommend testing with
                     if (!sample || p.length < sample.length)
