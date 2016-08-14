@@ -39,10 +39,14 @@ testStubs = {
     },
     // mocks of shared methods from the Interface-side
     methods: ['onClick','setCameraMode','getCurrentLocation'],
-    onClick: function(evt) { console.info('testStubs.onClick', evt); },
+    onClick: function(evt) {
+        console.info('testStubs.onClick', evt);
+        jQuery('#'+evt.id).css('backgroundColor', '#'+Math.floor(Math.random()*16777215).toString(16));
+    },
     setCameraMode: function(mode) {
         console.info('testStubs.setCameraMode', mode);
-        port.shared.modeUpdated(mode);
+        port.async.modeUpdated(mode);
+        port.async.flip({ axis: /first/.test(mode) ? 'x' : 'y' });
     },
     getCurrentLocation: function() {
         return { href: 'about:testStubs' };
