@@ -69,11 +69,12 @@ jQuery(document).ready(function() { jQuery('.card').flip(); });
 
 // offline testing stubs (note: this HTML file can also be loaded into a Web Browser for design/testing)
 var testStubs = {
-    sendScriptEvent: function() {},
+    _sendScriptEvent: function() {},
+    recv: function(a,b) { this._sendScriptEvent(JSON.stringify(port._make_event(a,b))); },
     eventBridge: {
         emitWebEvent: function(x) { console.info('emitWebEvent', x) },
         scriptEventReceived: {
-            connect: function(f) { testStubs.sendScriptEvent = f; }
+            connect: function(f) { testStubs._sendScriptEvent = f; }
         }
     },
     methods: ['onclick','setCameraMode','getCurrentLocation'],
