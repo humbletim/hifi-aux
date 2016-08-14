@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>EinsteinRosenBridge - simple.html</title>
+    <script src="EventBridgeAdapter.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="https://cdn.rawgit.com/nnattawat/flip/master/dist/jquery.flip.min.js"></script>
+    <script>;
+
+function log() { console.info('[simple.html] ' + [].slice.call(arguments).join(' ')); };
+
+var port = new EinsteinRosenBridge(window, {
+    version: '0.0.0',
+    key: 'webside' + location.hash,
+
+    // methods attached here will be available to the Interface side...
+    shared: {
+        // example: listen for Camera mode updates from Interface side
+        modeUpdated: function(mode) {
+            // vanilla HTML5
+            document.querySelector('#cameraMode').innerHTML = mode;
+
+            // jQuery
+            jQuery('.cameraModes button').removeClass('active');
+            jQuery('.cameraModes button.'+mode.replace(' ', '-')).addClass('active');            
+        },
+        // example: allow Interface side to configure and/or flip a card w/jquery.flip
+        flip: function(opts) {
+            jQuery('.card').flip(opts||false);
+            if (opts && opts.axis)
+                jQuery('.card .axis').text(opts.axis);
+        },
+        // example: let Interface side apply css styles through jQuery
+        css: function(selector, k, v) {
+            jQuery(selector).css(k, v);
+        },
+    },
+
+    // onload gets called once the bridge and shared methods are connected 
+    onload: function(api) {
+        // note: the "api" parameter is a reference to port.async
+        // (everything defined by Interface will be attached to it)
+        
+        // example: forward button clicks to the Interface side
+        jQuery('button').on('click', function(evt) {
+            port.async.onclick({
+                id: evt.target.id,
+                x: evt.x,
+                y: evt.y,
+                button: evt.button
+            });
+        });
+
+        // get current location from Interface side
+        port.async.getCurrentLocation(function(err, loc) {
+            jQuery('#loc').text(loc.href);
+        });
+    },
+
+    // log any errors during bridge setup
+    onerror: function(err) { console.error('port.onerror:' + err); }
+});
+
+// set up card flipper
+jQuery(document).ready(function() { jQuery('.card').flip(); });
+
+</script>
+<style>
+  body { margin: 0; padding: 0; font-family: sans; font-size: .8em; overflow: hidden; }
+  button { text-shadow: 0px 0px 5px white;  }
+  button.active { background-color: #696; }
+</style>
+  </head>
+    <body>
+      
+      <fieldset class='cameraModes'>
+        <legend>Camera.mode</legend>
+        <button class='third-person' onclick='port.async.setCameraMode(this.innerText)'>third person</button>
+        <button class='first-person' onclick='port.async.setCameraMode(this.innerText)'>first person</button>
+        <b id='cameraMode' style='float:right'>...</b>
+        <br />
+        <small>(try changing the Camera mode using the View menu too)</i>
+      </fieldset>
+
+      <fieldset>
+        <legend>buttons (click to round-trip colorize via Interface)</legend>
+        <button id='button-1'>button 1</button>
+        <button id='button-2'>button 2</button>
+        <button id='button-3'>button 3</button>
+        <button id='button-4'>button 4</button>
+      </fieldset>
+
+      <div id='errors' style='font-size:.8em;color:red'></div>
+      <script>onerror = function(e) { errors.innerHTML += e+'<br />'; };</script>
+
+      <!-- jQuery flip example -->
+      <style>
+        #cards { position: absolute; bottom: 0; width: 100%; height: 48px; overflow:hidden; color: white; background-color: black; -webkit-user-select: none; }
+        #cards .card { white-space: nowrap; height: 48px; line-height:48px; text-align: center; }
+      </style>
+      <div id='cards'>
+        <div class='card'>
+          <div class='front'>
+            <div style='background-size: contain; background-image: url(https://highfidelity.com/hf-logo-alpha.png)'>(click to flip on <b class='axis'>y</b>)</div>
+          </div>
+          <div class='back'>
+            <b id='loc'>...</b>
+          </div>
+        </div>
+      </div>
+      <!-- /jQuery flip example -->
+
+</body>
+</html>
