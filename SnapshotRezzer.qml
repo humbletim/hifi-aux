@@ -23,6 +23,7 @@ FocusScope {
             //sendToScript({ type: 'close' });
             show(false);
             button.text = button.placeholderText
+            bg.source = ''
             enabled = true
         }
     }
@@ -36,7 +37,7 @@ FocusScope {
         focus: true
         anchors.fill: parent
         visible: Boolean(source)
-        source: filename ? 'file://'+filename : ''
+        source: ''
     }
 
     property var error: ''
@@ -179,6 +180,7 @@ FocusScope {
         onSnapshotTaken: {
             console.info('SNAPSHOT DETECTED', path, button.text);
             filename = path;
+            bg.source = 'file://'+filename;
             mapping = '/snapshots/'+filename.split(/[\\/]/).pop().split(/[#?]/)[0];
             show(true);
             _debug.text = ''
