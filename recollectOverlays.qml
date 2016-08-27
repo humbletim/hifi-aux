@@ -84,7 +84,7 @@ Item {
             menu.addMenuItem("Display","Recollector","CTRL+F1");
         }
         Component.onDestruction: {
-            menu.removeMenuItem("Display","Recollector","CTRL+F1");
+            menu.removeMenuItem("Display","Recollector");
             menu.removeSeparator("Display", "--recollector--");
         }
     }
