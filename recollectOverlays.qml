@@ -9,7 +9,7 @@ import QtQuick.Controls.Styles 1.4
 
 Item {
     id: root
-    property var margin: 32
+    property var margin: 16
 
     signal sendToScript(var message);
     Component.onDestruction: sendToScript({type:'stop'})
