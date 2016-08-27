@@ -5,7 +5,7 @@
 import QtQuick 2.5
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
-//import Qt.labs.settings 1.0
+import Qt.labs.settings 1.0
 
 Item {
     id: root
@@ -16,11 +16,11 @@ Item {
     function fromScript(evt) { if (evt.type === 'recollect') window ? recollect(evt) : recollect.scheduled = evt; }
 
     anchors.fill: parent
-    // Settings {
-    //     id: settings
-    //     category: 'recollectOverlays'
-    //     property alias margin: root.margin
-    // }
+    Settings {
+        id: settings
+        category: 'recollectOverlays'
+        property alias margin: root.margin
+    }
     Rectangle {
         anchors.fill: parent
         color: 'black'
