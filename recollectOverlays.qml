@@ -104,7 +104,7 @@ Item {
     }
 
     function findChildren(obj, index, seen) {
-        //print('findChildren', obj, index, seen.length);
+        //if (!/QQuick|Proxy|Shadow|Constants/.test(obj))print('findChildren', obj.frame, obj, index, seen.length);
         if (!obj || typeof obj !== 'object') return;
         if (!~seen.indexOf(obj))
             seen.push(obj);
@@ -112,6 +112,14 @@ Item {
             findChildren(o,i,seen);
         });
         return seen;
+    }
+
+    // heuristics for identifying Mini Mirror, floating toolbars and OverlayWindows
+    function findOverlays() {
+        return findChildren(desktop, 0, [])
+            .filter(function(c,i) {
+                return c.objectName === 'AvatarInputs' || ('frame' in c && 'x' in c && 'width' in c && 'visible' in c)
+            });
     }
 
     function recollect(evt) {
@@ -131,12 +139,7 @@ Item {
 
         var bounds = getLogicalViewport(margin);
 
-        // heuristics for identifying Mini Mirror, floating toolbars and OverlayWindows
-        var floaters = findChildren(desktop, 0, [])
-            .filter(function(c,i) {
-                return c.objectName === 'AvatarInputs' ||
-                    (/toolbar|window|dialog/i.test(c) && 'pinnable' in c && 'x' in c);
-            });
+        var floaters = findOverlays();
 
         var backup = {}; // WIP; in future could save and restore placement snapshots or something
         floaters.forEach(function(c) {
