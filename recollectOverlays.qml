@@ -127,6 +127,7 @@ Item {
         output.text = margin+'\n'+JSON.stringify(evt)+'';
         if (evt && !isNaN(evt.margin))
             margin = evt.margin;
+        var isHMD = typeof HMD === 'object' && HMD.active;
         var print = function() {
             var message = [].slice.call(arguments).join(' ');
             output.text += '\n' + message;
@@ -138,6 +139,14 @@ Item {
         print('viewport', viewport.x, viewport.y, viewport.x+viewport.width, viewport.y+viewport.height);
 
         var bounds = getLogicalViewport(margin);
+
+        if (isHMD) {
+            bounds.x += bounds.width/4;
+            bounds.width -= bounds.width/2;
+            bounds.y += bounds.height/4;
+            bounds.height -= bounds.height/2;
+            print('adjusted to hmd mode:', JSON.stringify(bounds, 0,2));
+        }
 
         var floaters = findOverlays();
 
