@@ -72,13 +72,13 @@ _WebWindowEx.prototype = {
 };
 
 // Note: Qt/QML seems to have a quirk where the first time loading over HTTP all the QML doesn't load in time
-if (/^http/.test(_WebWindowEx.qml)) {
+/*if (/^http/.test(_WebWindowEx.qml)) {
     log('prefetching QML', _WebWindowEx.qml);
     var xhr = new XMLHttpRequest();
     xhr.open('GET', _WebWindowEx.qml, false);
     xhr.send();
     log('//prefetched QML', xhr.getAllResponseHeaders());
-}
+}*/
 
 // keep track of created windows for debugging
 _WebWindowEx.$windows = [];
@@ -117,9 +117,7 @@ function _WebWindowEx(title, url, width, height) {
     var _this = this;
     var to = Script.setTimeout(function() { to=null; _this.$ready('timeout'); }, 3000);
     this.$ready.connect(this, function(v) {
-        if (to) {
-            Script.clearTimeout(to); to=null;
-        }
+        if (to) { Script.clearTimeout(to); to=null; }
         log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
         delete this.$set; // revert to using prototype's .$set
         var _this = this;
