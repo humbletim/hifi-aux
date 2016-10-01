@@ -114,13 +114,15 @@ function _WebWindowEx(title, url, width, height) {
     this.$set = function(k,v) { $queued.push([k,v]); };
 
     this.$ready = signal('$ready');
+    this.$ready.connect(this, function(v) { log('$ready', v); });
     var _this = this;
     var to = Script.setTimeout(function() { to=null; _this.$ready('timeout'); }, 3000);
-    this.$ready.connect(this, function(v) {
+    this.$ready.connect(this, function once(v) {
+        this.$ready.disconnect(this, once);
         if (to) { Script.clearTimeout(to); to=null; }
         log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
         delete this.$set; // revert to using prototype's .$set
-        var _this = this;
+        //var _this = this;
         $queued.splice(0, $queued.length).forEach(function(kv) { _this.$set(kv[0], kv[1]); });
     });
 

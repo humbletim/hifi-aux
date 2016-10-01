@@ -23,7 +23,7 @@ Item {
         if (appwin) appwin.window = window;
         if (!window || appwin) return;
         appwin = windowMaker.createObject(null, { window: window, bridge: fauxroot.bridge });
-        $emit('$ready', true);
+        $emit('$ready', 'fauxroot');
     }
     Connections {
         target: window
@@ -106,6 +106,7 @@ Item {
             title: (window && window.title) || 'WebWindowEx'
             visible: false
 
+            Component.onCompleted: $emit('$ready', 'popoutwin')
             Component.onDestruction: {
                 console.info('popoutwin.onDestruction', title);
                 $emit('$destroyed', 'popoutwin');
@@ -133,6 +134,7 @@ Item {
                 anchors.fill: parent
                 focus: true
                 webChannel.registeredObjects: [bridge]
+                Component.onCompleted: $emit('$ready', 'webview')
             }
         }
     }
