@@ -65,8 +65,14 @@ _WebWindowEx.prototype = {
     setURL: function(url) { this.$set('url', url); },
     emitScriptEvent: function(event) {
         this._window.sendToQml({ target: 'web', origin: 'script', data: event });
-    }
+    },
+
+    destroyLater: function() { this._window.sendToQml({ target: 'qml', origin: 'script', data: 'destroyLater'}); },
+    close: function() { this._window.close(); }
 };
+
+// keep track of created windows for debugging
+_WebWindowEx.$windows = [];
 
 function _WebWindowEx(title, url, width, height) {
     if (!(this instanceof WebWindowEx))
@@ -78,17 +84,27 @@ function _WebWindowEx(title, url, width, height) {
     if (/^file:/.test(_WebWindowEx.qml))
         qml += '#' + new Date().toString(36);
 
-    var _window = this._window = new OverlayWindow({
-        title: 'WebWindowEx',
-        width: 128,
-        height: 128,
-        source: qml,
-        visible: true
-    });
+    function _createSurrogateWindow() {
+        return new OverlayWindow({
+            title: 'WebWindowEx',
+            width: 128,
+            height: 128,
+            source: qml,
+            visible: false
+        });
+    }
 
-    _window.setPosition(-256,0);
-//    _window.setVisible(true);
+    var _window = _createSurrogateWindow();
 
+    // Note: Qt/QML seems to have a quirk where the first time loading over HTTP doesn't display
+    // so, if the first one then recreate the surrogate again
+    if (/^http/.test(qml) && !_WebWindowEx.$first) {
+        _WebWindowEx.$first = +new Date;
+        _window.close();
+        _window = _createSurrogateWindow()
+    }
+
+    this._window = _window;
     this.eventBridge = this;
 
     // queue $settings messages until the QML side is ready to receive them
@@ -99,7 +115,6 @@ function _WebWindowEx(title, url, width, height) {
     this.$ready = signal('$ready');
     this.$ready.connect(this, function(v) {
         log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
-        _window.setVisible(false);
         delete this.$set; // revert to using prototype's .$set
         var _this = this;
         $queued.splice(0, $queued.length).forEach(function(kv) { _this.$set(kv[0], kv[1]); });
@@ -111,6 +126,15 @@ function _WebWindowEx(title, url, width, height) {
         moved: { enumerable: true, value: _window.moved },
         resized: { enumerable: true, value: _window.resized },
         closed: { enumerable: true, value: _window.closed },
+        $destroyed: { value: signal('$destroyed') },
+    });
+
+    _WebWindowEx.$windows.push(_window);
+    this.$destroyed.connect(this, function() {
+        var idx = _WebWindowEx.$windows.indexOf(_window);
+        log('$destroyed -- removing $windows['+idx+']', _window);
+        if (~idx) _WebWindowEx.$windows.splice(idx,1);
+        this._window = null; // prevent further access from scripting
     });
 
     this._window.fromQml.connect(this, function(event) {

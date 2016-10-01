@@ -20,13 +20,25 @@ Item {
     property var appwin: null
     property alias bridge: bridge
     onWindowChanged: {
+        if (appwin) appwin.window = window;
         if (!window || appwin) return;
         appwin = windowMaker.createObject(null, { window: window, bridge: fauxroot.bridge });
         $emit('$ready', true);
     }
     Connections {
         target: window
-        Component.onDestruction: appwin && appwin.destroy()
+        Component.onDestruction: {
+            log('window.onDestruction', appwin, window);
+            $emit('$destroyed', 'window');
+            appwin && appwin.destroy()
+            window = null
+        }
+        onWindowDestroyed: {
+            log('window.onWindowDestroyed', appwin, window);
+            $emit('$destroyed', 'windowDestroyed');
+            appwin && appwin.destroy()
+            window = null
+        }
     }
 
     // a mini "EventBridge" implementation
@@ -57,14 +69,16 @@ Item {
         if (event.property) {
             log('fromScript', event.property, event.value);
             if (event.property === 'url' && appwin.webview)
-                appwin.webview.url = event.value;
+                return appwin.webview.url = event.value;
             else if (event.property in appwin)
-                appwin[event.property] = event.value;
+                return appwin[event.property] = event.value;
             else
                 log('-- property not recognized', event.property, event.value);
         }
         //log('fromScript', JSON.stringify(event));
 
+        if (event.target === 'qml' && event.data === 'destroyLater')
+            return appwin.destroy();
         // forward incoming Script messages to the HTML side
         if (event.target === '*' || event.target === 'web')
             bridge.scriptEventReceived(event.data);
@@ -94,6 +108,7 @@ Item {
 
             Component.onDestruction: {
                 console.info('popoutwin.onDestruction', title);
+                $emit('$destroyed', 'popoutwin');
                 window && window.destroy && window.destroy();
             }
 
