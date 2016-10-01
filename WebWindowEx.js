@@ -71,6 +71,15 @@ _WebWindowEx.prototype = {
     close: function() { this._window.close(); }
 };
 
+// Note: Qt/QML seems to have a quirk where the first time loading over HTTP all the QML doesn't load in time
+if (/^http/.test(_WebWindowEx.qml)) {
+    log('prefetching QML', _WebWindowEx.qml);
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', _WebWindowEx.qml, false);
+    xhr.send();
+    log('//prefetched QML', xhr.getAllResponseHeaders());
+}
+
 // keep track of created windows for debugging
 _WebWindowEx.$windows = [];
 
@@ -95,16 +104,6 @@ function _WebWindowEx(title, url, width, height) {
     }
 
     var _window = _createSurrogateWindow();
-
-    // Note: Qt/QML seems to have a quirk where the first time loading over HTTP doesn't display
-    // so, if the first one then recreate the surrogate again
-    if (/^http/.test(qml) && !_WebWindowEx.$first) {
-        log('recreating surrogate', qml);
-        _WebWindowEx.$first = +new Date;
-        _window.close();
-        qml += '#';
-        _window = _createSurrogateWindow()
-    }
 
     this._window = _window;
     this.eventBridge = this;
