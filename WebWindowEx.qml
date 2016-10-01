@@ -22,6 +22,7 @@ Item {
     onWindowChanged: {
         if (!window || appwin) return;
         appwin = windowMaker.createObject(null, { window: window, bridge: fauxroot.bridge });
+        $emit('$ready', true);
     }
     Connections {
         target: window
@@ -48,7 +49,7 @@ Item {
         // forward incoming HTML messages to the Script side
         onWebEventReceived: sendToScript({ origin: 'web', data: message, target: 'script', tstamp: +new Date })
     }
-  
+
     // QML -> Script
     signal sendToScript(var message);
     // Script -> QML
@@ -61,12 +62,21 @@ Item {
                 appwin[event.property] = event.value;
             else
                 log('-- property not recognized', event.property, event.value);
-        }        
+        }
         //log('fromScript', JSON.stringify(event));
 
         // forward incoming Script messages to the HTML side
         if (event.target === '*' || event.target === 'web')
             bridge.scriptEventReceived(event.data);
+    }
+
+    // forward internal signals to the WebWindowEx layer
+    function $emit(signal, value) {
+        sendToScript({
+            target: 'WebWindowEx',
+            origin: 'qml',
+            data: { emit: signal, arguments: [].slice.call(arguments,1) }
+        });
     }
 
     Component {
@@ -81,15 +91,6 @@ Item {
             height: 480
             title: window.title || 'WebWindowEx'
             visible: false
-
-            // forward internal signals to WebWindowEx
-            function $emit(signal, value) {
-                sendToScript({
-                    target: 'WebWindowEx',
-                    origin: 'qml',
-                    data: { emit: signal, arguments: [].slice.call(arguments,1) }
-                });
-            }
 
             Component.onDestruction: {
                 console.info('popoutwin.onDestruction', title);
@@ -109,7 +110,7 @@ Item {
             onSizeChanged: $emit('resized', size)
             onVisibleChanged: $emit('visibilityChanged', visible)
             //onTitleChanged: $emit('title', title)
-            
+
             property alias webview: webview
             WebEngineView {
                 id: webview

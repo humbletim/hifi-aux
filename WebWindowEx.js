@@ -88,12 +88,25 @@ function _WebWindowEx(title, url, width, height) {
 
     this.eventBridge = this;
 
+    // queue $settings messages until the QML side is ready to receive them
+    var $queued = [];
+    // (by temporarily overriding $set)
+    this.$set = function(k,v) { $queued.push([k,v]); };
+
+    this.$ready = signal('$ready');
+    this.$ready.connect(this, function(v) {
+        log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
+        delete this.$set; // revert to using prototype's .$set
+        var _this = this;
+        $queued.splice(0, $queued.length).forEach(function(kv) { _this.$set(kv[0], kv[1]); });
+    });
+
     Object.defineProperties(this, {
-        webEventReceived: { value: _window.webEventReceived || signal('webEventReceived') },
-        visibilityChanged: { value: _window.visibilityChanged || signal('visibilityChanged') },
-        moved: { value: _window.moved },
-        resized: { value: _window.resized },
-        closed: { value: _window.closed },
+        webEventReceived: { enumerable: true, value: _window.webEventReceived || signal('webEventReceived') },
+        visibilityChanged: { enumerable: true, value: _window.visibilityChanged || signal('visibilityChanged') },
+        moved: { enumerable: true, value: _window.moved },
+        resized: { enumerable: true, value: _window.resized },
+        closed: { enumerable: true, value: _window.closed },
     });
 
     this._window.fromQml.connect(this, function(event) {
