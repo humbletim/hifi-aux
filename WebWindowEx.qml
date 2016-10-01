@@ -103,7 +103,7 @@ Item {
             y: 0
             width: 640
             height: 480
-            title: window.title || 'WebWindowEx'
+            title: (window && window.title) || 'WebWindowEx'
             visible: false
 
             Component.onDestruction: {
