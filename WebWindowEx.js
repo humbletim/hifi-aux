@@ -79,12 +79,15 @@ function _WebWindowEx(title, url, width, height) {
         qml += '#' + new Date().toString(36);
 
     var _window = this._window = new OverlayWindow({
-        title: title,
-        width: width,
-        height: height,
+        title: 'surrogate for:'+title,
+        width: 128,
+        height: 128,
         source: qml,
         visible: false
     });
+
+    _window.setPosition(-256,0);
+    _window.setVisible(true);
 
     this.eventBridge = this;
 
@@ -96,6 +99,7 @@ function _WebWindowEx(title, url, width, height) {
     this.$ready = signal('$ready');
     this.$ready.connect(this, function(v) {
         log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
+        _window.setVisible(false);
         delete this.$set; // revert to using prototype's .$set
         var _this = this;
         $queued.splice(0, $queued.length).forEach(function(kv) { _this.$set(kv[0], kv[1]); });
