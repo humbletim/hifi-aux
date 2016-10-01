@@ -80,7 +80,7 @@ Item {
             width: 640
             height: 480
             title: window.title || 'WebWindowEx'
-            visible: window.visible
+            visible: false
 
             // forward internal signals to WebWindowEx
             function $emit(signal, value) {
