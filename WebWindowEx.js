@@ -99,8 +99,10 @@ function _WebWindowEx(title, url, width, height) {
     // Note: Qt/QML seems to have a quirk where the first time loading over HTTP doesn't display
     // so, if the first one then recreate the surrogate again
     if (/^http/.test(qml) && !_WebWindowEx.$first) {
+        log('recreating surrogate', qml);
         _WebWindowEx.$first = +new Date;
         _window.close();
+        qml += '#';
         _window = _createSurrogateWindow()
     }
 
