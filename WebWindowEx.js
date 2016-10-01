@@ -79,15 +79,15 @@ function _WebWindowEx(title, url, width, height) {
         qml += '#' + new Date().toString(36);
 
     var _window = this._window = new OverlayWindow({
-        title: 'surrogate for:'+title,
+        title: 'WebWindowEx',
         width: 128,
         height: 128,
         source: qml,
-        visible: false
+        visible: true
     });
 
     _window.setPosition(-256,0);
-    _window.setVisible(true);
+//    _window.setVisible(true);
 
     this.eventBridge = this;
 
