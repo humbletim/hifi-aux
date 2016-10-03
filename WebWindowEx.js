@@ -47,6 +47,8 @@ _WebWindowEx.qml = Script.resolvePath('WebWindowEx.qml');
 
 var exports = _WebWindowEx;
 
+exports.debug = /[d]ebug/.test(Script.resolvePath(''));
+
 WebWindowEx = _WebWindowEx; // export as a global
 try { module.exports = exports; } catch(e) {} // and if possible as conventional module
 
@@ -55,7 +57,7 @@ _WebWindowEx.toString = function() {
 };
 
 _WebWindowEx.prototype = {
-    $set: function(k,v) { return this._window.sendToQml({ property: k, value: v }); },
+    $set: function(k,v) { try { return this._window.sendToQml({ property: k, value: v }); } catch(e) { exports.debug && log('$set error:', e); } },
     toString: function() { return '[WebWindowClass (WebWindowEx)]'; },
 
     setVisible: function(v) { this.$set('visible', v); },
@@ -67,7 +69,8 @@ _WebWindowEx.prototype = {
         this._window.sendToQml({ target: 'web', origin: 'script', data: event });
     },
 
-    destroyLater: function() { this._window.sendToQml({ target: 'qml', origin: 'script', data: 'destroyLater'}); },
+    deleteLater: function() { this._window.sendToQml({ target: 'qml', origin: 'script', data: 'deleteLater'}); },
+    raise: function() { this._window.sendToQml({ target: 'qml', origin: 'script', data: 'raise'}); },
     close: function() { this._window.close(); }
 };
 
@@ -82,7 +85,11 @@ _WebWindowEx.prototype = {
 
 // keep track of created windows for debugging
 _WebWindowEx.$windows = [];
-
+Script.scriptEnding.connect(function() {
+    _WebWindowEx.$windows.splice(0, _WebWindowEx.$windows.length).forEach(function(w) {
+        w.deleteLater();
+    });
+});
 function _WebWindowEx(title, url, width, height) {
     if (!(this instanceof WebWindowEx))
         return new _WebWindowEx(title, url, width, height);
@@ -90,8 +97,10 @@ function _WebWindowEx(title, url, width, height) {
     var qml = _WebWindowEx.qml;
 
     // automatically apply a cache buster (if working from the local filesystem)
-    if (/^file:/.test(_WebWindowEx.qml))
-        qml += '#' + new Date().toString(36);
+    if (/^file:/.test(qml))
+        qml += '#' + [ ['','debug'][+exports.debug], new Date().getTime().toString(36)].join('&')
+    else if (exports.debug)
+        qml += '?debug=true';
 
     function _createSurrogateWindow() {
         return new OverlayWindow({
@@ -109,22 +118,14 @@ function _WebWindowEx(title, url, width, height) {
     this.eventBridge = this;
 
     // queue $settings messages until the QML side is ready to receive them
-    var $queued = [];
     // (by temporarily overriding $set)
-    this.$set = function(k,v) { $queued.push([k,v]); };
-
     this.$ready = signal('$ready');
-    this.$ready.connect(this, function(v) { log('$ready', v); });
-    var _this = this;
-    var to = Script.setTimeout(function() { to=null; _this.$ready('timeout'); }, 3000);
-    this.$ready.connect(this, function once(v) {
-        this.$ready.disconnect(this, once);
-        if (to) { Script.clearTimeout(to); to=null; }
-        log('received ready event from QML side', v, '(queued messages: '+$queued.length+')');
-        delete this.$set; // revert to using prototype's .$set
-        //var _this = this;
-        $queued.splice(0, $queued.length).forEach(function(kv) { _this.$set(kv[0], kv[1]); });
+    this.$ready.connect(this, function(v) {
+        //if (v === 'webview')this.setVisible(true);
+        exports.debug && log('$ready', v);
     });
+    new _QueueMethodUntilSignaled(this.$ready, this, '$set', 3000);
+    new _QueueMethodUntilSignaled(this.$ready, this, 'emitScriptEvent', 3000);
 
     Object.defineProperties(this, {
         webEventReceived: { enumerable: true, value: _window.webEventReceived || signal('webEventReceived') },
@@ -175,8 +176,31 @@ function _WebWindowEx(title, url, width, height) {
         this.setTitle(title);
 }//WebWindowEx
 
+// queue calls to object[method] until the returned signal is fired
+// (if timeout specified and not fired within that many ms then signal will be fired manually)
+function _QueueMethodUntilSignaled($signal, object, method, timeout) {
+    var $queued = [];
+    var $old = object[method];
+    exports.debug && log('_QueueMethodUntilSignaled - ', method, $signal.$name, timeout);
+    object[method] = function() { $queued.push([].slice.call(arguments)); };
+    var to;
+    if (timeout)
+        to = Script.setTimeout(function() { to=null; $signal('timeout'); }, timeout);
+    $signal.connect(function once(v) {
+        $signal.disconnect(once);
+        if (to) { Script.clearTimeout(to); to=null; }
+        exports.debug && log('//_QueueMethodUntilSignaled - restoring', method, $signal.$name, '(queued messages: '+$queued.length+')');
+        object[method] = $old;
+        $queued.splice(0, $queued.length).forEach(function(args) { object[method].apply(object, args); });
+    });
+    $signal.$queued = $queued;
+    $signal.$old = $old;
+    return $signal;
+}
+
 // mini "signal" polyfill
 function signal(name) {
+    emit.$name = name;
     emit.$connects = [];
     function emit() {
         var args = arguments;
@@ -207,7 +231,7 @@ function signal(name) {
         emit.$connects = emit.$connects.filter(function(c) {
             return c.func !== om.func || c.scope !== om.scope;
         });
-        log(name, 'before',before,'after',emit.$connects.length);
+        exports.debug && log(name, 'before',before,'after',emit.$connects.length);
     };
     return emit;
 }

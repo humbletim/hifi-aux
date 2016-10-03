@@ -10,6 +10,8 @@ import QtWebChannel 1.0
 Item {
     id: fauxroot
     readonly property var log: console.info.bind(console, '[WebWindowEx.qml]')
+    readonly property var __filename: (function() { try { throw new Error('stacktrace'); } catch(e) { return e.fileName; } })()
+    readonly property var debug: /[d]ebug/.test(__filename)
 
     // note: QmlWindow eventually places OverlayWindow content into a HiFi Window component
     //  so we wait until we're attached in order to get a reference to the actual window
@@ -67,7 +69,19 @@ Item {
     // Script -> QML
     function fromScript(event) {
         if (event.property) {
-            log('fromScript', event.property, event.value);
+            debug && log('fromScript', event.property, JSON.stringify(event.value));
+            if (typeof event.value === 'undefined')
+                return debug && log('fromScript', event.property, 'ignoring undefined value');
+            if (event.property === 'x' && typeof event.value === 'object') {
+                appwin.x = event.value.x;
+                appwin.y = event.value.y;
+                return;
+            }
+            if (event.property === 'width' && typeof event.value === 'object') {
+                appwin.width = event.value.width;
+                appwin.height = event.value.height;
+                return;
+            }
             if (event.property === 'url' && appwin.webview)
                 return appwin.webview.url = event.value;
             else if (event.property in appwin)
@@ -77,8 +91,13 @@ Item {
         }
         //log('fromScript', JSON.stringify(event));
 
-        if (event.target === 'qml' && event.data === 'destroyLater')
-            return appwin.destroy();
+        if (event.target === 'qml') {
+            if (event.data === 'deleteLater')
+                return appwin.destroy();
+            else if (event.data === 'raise')
+                return appwin.raise();
+            return;
+        }
         // forward incoming Script messages to the HTML side
         if (event.target === '*' || event.target === 'web')
             bridge.scriptEventReceived(event.data);
@@ -128,13 +147,51 @@ Item {
             //onTitleChanged: $emit('title', title)
 
             property alias webview: webview
+
             WebEngineView {
                 id: webview
                 url: "about:blank"
                 anchors.fill: parent
                 focus: true
                 webChannel.registeredObjects: [bridge]
-                Component.onCompleted: $emit('$ready', 'webview')
+                profile.httpUserAgent:  "Mozilla/5.0 Chrome (HighFidelityInterface; WebWindowEx)"
+                function getqwebchannel_src() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', "qrc:///qtwebchannel/qwebchannel.js", false);
+                    xhr.send();
+                    return xhr.response;
+                }
+                userScripts: [
+                    WebEngineScript {
+                        sourceCode: "EventBridge = { "+
+                            "  __proto__: { "+
+                            "     emits: [], connects: [], disconnects: [],"+
+                            "     scriptEventReceived: { "+
+                            "       connect: function(f) { EventBridge.connects.push(f);  }, "+
+                            "       disconnect: function(f) { EventBridge.disconnects.push(f); } "+
+                            "    },"+
+                            "    emitWebEvent: function(msg) { EventBridge.emits.push(msg); } "+
+                            "  }"+
+                            "};"
+                        injectionPoint: WebEngineScript.DocumentCreation
+                        worldId: WebEngineScript.MainWorld
+                    },
+                    WebEngineScript {
+                        sourceCode: (
+                            webview.getqwebchannel_src() + '\n' +
+                                "new QWebChannel(qt.webChannelTransport, function (channel) { "+
+                                "var old = EventBridge.__proto__; EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
+                                "  (old.connects||[]).forEach(function(f) { EventBridge.connect(f); });"+
+                                "  (old.disconnects||[]).forEach(function(f) { EventBridge.disconnect(f); });"+
+                                "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });"+
+                                "} );"
+                        )
+                        injectionPoint: WebEngineScript.DocumentCreation
+                        worldId: WebEngineScript.MainWorld
+                    }
+                ]
+                Component.onCompleted: $emit('$ready', 'webview');
+                onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
             }
         }
     }
