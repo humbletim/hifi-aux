@@ -46,7 +46,8 @@ log('...', version);
 _WebWindowEx.qml = Script.resolvePath('WebWindowEx.qml');
 
 var exports = _WebWindowEx;
-
+exports.signal = signal;
+exports._QueueMethodUntilSignaled = _QueueMethodUntilSignaled;
 exports.debug = /[d]ebug/.test(Script.resolvePath(''));
 
 WebWindowEx = _WebWindowEx; // export as a global
@@ -62,8 +63,18 @@ _WebWindowEx.prototype = {
 
     setVisible: function(v) { this.$set('visible', v); },
     setTitle: function(v) { this.$set('title', v); },
-    setPosition: function(x,y) { this.$set('x', x); this.$set('y',y); },
-    setSize: function(w,h) { this.$set('width',w); this.$set('height',h); },
+    setPosition: function(x,y) {
+        if (typeof x === 'object')
+            y = x.y, x = x.x;
+        this.$set('x', x);
+        this.$set('y',y);
+    },
+    setSize: function(w,h) {
+        if (typeof w === 'object')
+            h = w.height, w = w.width;
+        this.$set('width', w);
+        this.$set('height', h);
+    },
     setURL: function(url) { this.$set('url', url); },
     emitScriptEvent: function(event) {
         this._window.sendToQml({ target: 'web', origin: 'script', data: event });
@@ -90,9 +101,14 @@ Script.scriptEnding.connect(function() {
         w.deleteLater();
     });
 });
-function _WebWindowEx(title, url, width, height) {
+function _WebWindowEx(title, url, width, height, toolWindow) {
     if (!(this instanceof WebWindowEx))
-        return new _WebWindowEx(title, url, width, height);
+        return new _WebWindowEx(title, url, width, height, toolWindow);
+
+    if (typeof title === 'object') {
+        var ob = title;
+        title = ob.title, url = ob.source, width = ob.width, height = ob.height, toolWindow = ob.toolWindow;
+    }
 
     var qml = _WebWindowEx.qml;
 
@@ -127,9 +143,11 @@ function _WebWindowEx(title, url, width, height) {
     new _QueueMethodUntilSignaled(this.$ready, this, '$set', 3000);
     new _QueueMethodUntilSignaled(this.$ready, this, 'emitScriptEvent', 3000);
 
+    var visibilityChanged = _window.visibilityChanged || signal('visibilityChanged');
     Object.defineProperties(this, {
         webEventReceived: { enumerable: true, value: _window.webEventReceived || signal('webEventReceived') },
-        visibilityChanged: { enumerable: true, value: _window.visibilityChanged || signal('visibilityChanged') },
+        visibilityChanged: { enumerable: true, value: visibilityChanged },
+        visibleChanged: { enumerable: true, value: visibilityChanged },
         moved: { enumerable: true, value: _window.moved },
         resized: { enumerable: true, value: _window.resized },
         closed: { enumerable: true, value: _window.closed },

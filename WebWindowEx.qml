@@ -69,25 +69,19 @@ Item {
     // Script -> QML
     function fromScript(event) {
         if (event.property) {
-            debug && log('fromScript', event.property, JSON.stringify(event.value));
-            if (typeof event.value === 'undefined')
-                return debug && log('fromScript', event.property, 'ignoring undefined value');
-            if (event.property === 'x' && typeof event.value === 'object') {
-                appwin.x = event.value.x;
-                appwin.y = event.value.y;
-                return;
+            try {
+                debug && log('fromScript', event.property, JSON.stringify(event.value));
+                if (typeof event.value === 'undefined')
+                    return debug && log('fromScript', event.property, 'ignoring undefined value');
+                if (event.property === 'url' && appwin.webview)
+                    return appwin.webview.url = event.value;
+                else if (event.property in appwin)
+                    return appwin[event.property] = event.value;
+                else
+                    log('-- property not recognized', event.property, event.value);
+            } catch(e) {
+                log('property error:', JSON.stringify(event), event.property, event.value);
             }
-            if (event.property === 'width' && typeof event.value === 'object') {
-                appwin.width = event.value.width;
-                appwin.height = event.value.height;
-                return;
-            }
-            if (event.property === 'url' && appwin.webview)
-                return appwin.webview.url = event.value;
-            else if (event.property in appwin)
-                return appwin[event.property] = event.value;
-            else
-                log('-- property not recognized', event.property, event.value);
         }
         //log('fromScript', JSON.stringify(event));
 
@@ -181,8 +175,8 @@ Item {
                             webview.getqwebchannel_src() + '\n' +
                                 "new QWebChannel(qt.webChannelTransport, function (channel) { "+
                                 "var old = EventBridge.__proto__; EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
-                                "  (old.connects||[]).forEach(function(f) { EventBridge.connect(f); });"+
-                                "  (old.disconnects||[]).forEach(function(f) { EventBridge.disconnect(f); });"+
+                                "  (old.connects||[]).forEach(function(f) { EventBridge.scriptEventReceived.connect(f); });"+
+                                "  (old.disconnects||[]).forEach(function(f) { EventBridge.scriptEventReceived.disconnect(f); });"+
                                 "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });"+
                                 "} );"
                         )
