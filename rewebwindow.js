@@ -12,7 +12,7 @@ var log = function() { print('[rewebwindow.js] ' + [].slice.call(arguments).join
 
 // get a handle to our entire script self-URL
 var self = (function() { try { throw new Error('stack'); } catch(e) { return e.fileName; }})() || Script.resolvePath(''),
-    target = (self.substr(1).match(/\b(?:https?|file|apt|data|javascript):.+$/)||[])[0];
+    target = (self.substr(1).match(/(?:\/~\/|\b(?:https?|file|apt|data|javascript):).+$/)||[])[0];
 
 log('...... self', self);
 log('...... target', target);
