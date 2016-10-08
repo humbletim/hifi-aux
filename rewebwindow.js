@@ -44,7 +44,7 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
             this.moved.connect(this, function(_pt) { this.position = _pt; });
             var $toolWindow = this.$toolWindow = WebWindowEx.$toolWindow;
             this.$moveto = function(pt) {
-                this.setPosition(pt.x, pt.y + ($toolWindow.size.height||64) + 32);
+                pt && this.setPosition(pt.x, pt.y + ($toolWindow.size.height||64) + 32);
             };
             log('=========================================================================ToolWindow', title);
             //var thiz=this;
