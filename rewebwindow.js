@@ -27,5 +27,82 @@ if (!target) {
 Script.include(Script.resolvePath('WebWindowEx.js') + '#' + new Date().getTime().toString(36));
 WebWindow = WebWindowEx;
 
+// WIP: mini faux ToolWindow emulation
+OverlayWebWindow = function(title, url, width, height, toolWindow) {
+    return (function() {
+        if (title.visible)
+            this.setVisible(true);
+        this.raise = function() {
+            this.setVisible(true);
+            this.__proto__.raise.call(this);
+        };
+        if (toolWindow || title.toolWindow) {
+            if (title.toolWindow)
+                title = title.title;
+            this.resized.connect(this, function(_wh) { this.size = _wh; });
+            this.moved.connect(this, function(_pt) { this.position = _pt; });
+            var $toolWindow = this.$toolWindow = WebWindowEx.$toolWindow;
+            this.$moveto = function(pt) {
+                pt.y += ($toolWindow.size.height||64) + 32;
+                this.setPosition(pt);
+            };
+            $toolWindow.moved.connect(this, '$moveto');
+            log('=========================================================================ToolWindow', title);
+            //var thiz=this;
+            //Script.setTimeout(function() { thiz.$ready('timeout') ;thiz.setVisible(true);}, 1000);
+            this.$ready.connect(this, function once() {
+                this.$ready.disconnect(this, once);
+                if (once.poop) throw new Error('poop');
+                once.poop = true;
+
+                this.$moveto($toolWindow.position);
+                $toolWindow.emitScriptEvent('<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>');
+                $toolWindow.webEventReceived.connect(this, function(msg) {
+                    if (msg === title) {
+                        $toolWindow.$tab = this;
+                        this.raise();
+                    }
+                });
+                $toolWindow.$tabs.push(this);
+                this.resized.connect(this, function(sz) {
+                    if ($toolWindow.$tab === this) {
+                        //$toolWindow.$tabmsg(sz);
+                        $toolWindow.$tabs.filter(function(t) { return t !== $toolWindow.$tab })
+                            .forEach(function(t) { t.setSize(sz); });
+
+
+                    }
+                });
+                $toolWindow.$tabmsg.connect(this, function(msg) {
+                    if ($toolWindow.$tab === this)
+                        return;
+                    if (msg.height && JSON.stringify(msg) !== JSON.stringify(this._size) && JSON.stringify(msg) !== JSON.stringify(this.size)) {
+                        this._size = this.size;
+                        log('matching size', JSON.stringify(msg));
+                        this.setSize(msg);
+                    }
+                });
+                $toolWindow.setVisible(true);
+            });
+        }
+        return this;
+    }).call(new WebWindowEx(title, url, width, height, toolWindow));
+};
+if(!WebWindowEx.$toolWindow) {
+    WebWindowEx.$toolWindow = new WebWindowEx(
+        'ToolWindow', 'data:text/html,<style>body{background:black;zoom:1}button{float:left}</style><script>('+
+            function() {
+                setTimeout(function() {
+                    EventBridge.scriptEventReceived.connect(function(msg) { output.innerHTML+=msg+'\n' });
+                }, 1);
+            }+')()</script><div id=output></div>', 480, 64, false);
+    WebWindowEx.$toolWindow.$tabmsg = WebWindowEx.signal('$tabmsg');
+    WebWindowEx.$toolWindow.$tabs = [];
+    WebWindowEx.$toolWindow.resized.connect(function(_wh) { WebWindowEx.$toolWindow.size = _wh; });
+    WebWindowEx.$toolWindow.moved.connect(function(_pt) { WebWindowEx.$toolWindow.position = _pt; });
+    WebWindowEx.$toolWindow.setPosition(0,0);
+    WebWindowEx.$toolWindow.setVisible(true);
+}
+
 log('...... including:', target);
 Script.include(target);
