@@ -55,7 +55,9 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
                 once.calledtwice = true;
 
                 this.$moveto($toolWindow.position);
-                $toolWindow.emitScriptEvent('<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>');
+                Script.setTimeout(function() {
+                    $toolWindow.emitScriptEvent('<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>');
+                }, 500);
                 $toolWindow.webEventReceived.connect(this, function(msg) {
                     if (msg === title) {
                         $toolWindow.$tab = this;
