@@ -30,7 +30,7 @@ WebWindow = WebWindowEx;
 // WIP: mini faux ToolWindow emulation
 OverlayWebWindow = function(title, url, width, height, toolWindow) {
     return (function() {
-        if (title.visible)
+        if (title.visible !== false && !toolWindow && !title.toolWindow)
             this.setVisible(true);
         this.raise = function() {
             this.setVisible(true);
