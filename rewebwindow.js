@@ -102,6 +102,7 @@ if(!WebWindowEx.$toolWindow) {
     WebWindowEx.$toolWindow.moved.connect(function(_pt) { WebWindowEx.$toolWindow.position = _pt; });
     WebWindowEx.$toolWindow.setPosition(0,0);
     WebWindowEx.$toolWindow.setVisible(true);
+    WebWindowEx.$toolWindow.setVisible(false);
 }
 
 log('...... including:', target);

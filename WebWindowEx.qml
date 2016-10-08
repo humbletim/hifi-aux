@@ -182,6 +182,11 @@ Item {
                         )
                         injectionPoint: WebEngineScript.DocumentCreation
                         worldId: WebEngineScript.MainWorld
+                    },
+                    WebEngineScript {
+                        sourceCode: "console.warn('disabling context menu to workaround QML Popup issue');window.addEventListener('contextmenu', function(evt) { evt.preventDefault(); });"
+                        injectionPoint: WebEngineScript.DocumentReady
+                        worldId: WebEngineScript.MainWorld
                     }
                 ]
                 Component.onCompleted: $emit('$ready', 'webview');
