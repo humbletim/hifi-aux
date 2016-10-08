@@ -119,6 +119,8 @@ Item {
             title: (window && window.title) || 'WebWindowEx'
             visible: false
 
+            Binding { target: popoutwin; property: 'flags'; value: Qt.Tool; when:  /nofocus/i.test(title) }
+
             Component.onCompleted: $emit('$ready', 'popoutwin')
             Component.onDestruction: {
                 console.info('popoutwin.onDestruction', title);

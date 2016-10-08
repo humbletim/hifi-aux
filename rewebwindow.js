@@ -39,21 +39,20 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
         if (toolWindow || title.toolWindow) {
             if (title.toolWindow)
                 title = title.title;
+            this.setSize({width: 800, height: 600});
             this.resized.connect(this, function(_wh) { this.size = _wh; });
             this.moved.connect(this, function(_pt) { this.position = _pt; });
             var $toolWindow = this.$toolWindow = WebWindowEx.$toolWindow;
             this.$moveto = function(pt) {
-                pt.y += ($toolWindow.size.height||64) + 32;
-                this.setPosition(pt);
+                this.setPosition(pt.x, pt.y + ($toolWindow.size.height||64) + 32);
             };
-            $toolWindow.moved.connect(this, '$moveto');
             log('=========================================================================ToolWindow', title);
             //var thiz=this;
             //Script.setTimeout(function() { thiz.$ready('timeout') ;thiz.setVisible(true);}, 1000);
             this.$ready.connect(this, function once() {
                 this.$ready.disconnect(this, once);
-                if (once.poop) throw new Error('poop');
-                once.poop = true;
+                if (once.calledtwice) throw new Error('calledtwice');
+                once.calledtwice = true;
 
                 this.$moveto($toolWindow.position);
                 $toolWindow.emitScriptEvent('<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>');
@@ -64,13 +63,18 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
                     }
                 });
                 $toolWindow.$tabs.push(this);
-                this.resized.connect(this, function(sz) {
+                if ($toolWindow.$tabs.length === 1)
+                    $toolWindow.$tab = this;
+                this.resized.connect(this, function sized(sz) {
                     if ($toolWindow.$tab === this) {
-                        //$toolWindow.$tabmsg(sz);
-                        $toolWindow.$tabs.filter(function(t) { return t !== $toolWindow.$tab })
-                            .forEach(function(t) { t.setSize(sz); });
-
-
+                        if (sized.to)
+                            Script.clearTimeout(sized.to);
+                        sized.to = Script.setTimeout(function() {
+                            sized.to = 0;
+                            //$toolWindow.$tabmsg(sz);
+                            $toolWindow.$tabs.filter(function(t) { return t !== $toolWindow.$tab })
+                                .forEach(function(t) { t.setSize(sz); });
+                        }, 100);
                     }
                 });
                 $toolWindow.$tabmsg.connect(this, function(msg) {
@@ -82,7 +86,21 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
                         this.setSize(msg);
                     }
                 });
-                $toolWindow.setVisible(true);
+                this.visibleChanged.connect(this, function(visible) {
+                    this.visible = visible;
+                    $toolWindow.setVisible($toolWindow.$tabs.filter(function(t) { return t.visible; }).length);
+                    if (visible) {
+                        log('reposition on visible', this, JSON.stringify($toolWindow.position));
+                        var t = this;
+                        //Script.setTimeout(function() {
+                        t.$moveto($toolWindow.position);
+                        //}, 1000);
+                        Script.setTimeout(function() {
+                            if ($toolWindow.$tab)
+                                $toolWindow.$tab.raise();
+                        }, 500);
+                    }
+                });
             });
         }
         return this;
@@ -99,10 +117,18 @@ if(!WebWindowEx.$toolWindow) {
     WebWindowEx.$toolWindow.$tabmsg = WebWindowEx.signal('$tabmsg');
     WebWindowEx.$toolWindow.$tabs = [];
     WebWindowEx.$toolWindow.resized.connect(function(_wh) { WebWindowEx.$toolWindow.size = _wh; });
-    WebWindowEx.$toolWindow.moved.connect(function(_pt) { WebWindowEx.$toolWindow.position = _pt; });
+    WebWindowEx.$toolWindow.moved.connect(function moved(_pt) {
+        WebWindowEx.$toolWindow.position = _pt;
+        if (moved.to)
+            Script.clearTimeout(moved.to);
+        moved.to = Script.setTimeout(function() {
+            moved.to = 0;
+            WebWindowEx.$toolWindow.$tabs.forEach(function(t) { t.$moveto(WebWindowEx.$toolWindow.position) });
+        }, 100);
+    });
     WebWindowEx.$toolWindow.setPosition(0,0);
-    WebWindowEx.$toolWindow.setVisible(true);
-    WebWindowEx.$toolWindow.setVisible(false);
+    //WebWindowEx.$toolWindow.setVisible(true);
+    //WebWindowEx.$toolWindow.setVisible(false);
 }
 
 log('...... including:', target);
