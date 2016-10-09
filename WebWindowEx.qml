@@ -159,7 +159,8 @@ Item {
                 }
                 userScripts: [
                     WebEngineScript {
-                        sourceCode: "EventBridge = { "+
+                        sourceCode: "var WebChannel, EventBridge, QWebChannel, openEventBridge;"+
+                            "Object.defineProperty(window, 'EventBridge',{ value: { "+
                             "  __proto__: { "+
                             "     emits: [], connects: [], disconnects: [],"+
                             "     scriptEventReceived: { "+
@@ -168,7 +169,7 @@ Item {
                             "    },"+
                             "    emitWebEvent: function(msg) { EventBridge.emits.push(msg); } "+
                             "  }"+
-                            "};"+ /*
+                            "}});"+ /*
                         injectionPoint: WebEngineScript.DocumentCreation
                         worldId: WebEngineScript.MainWorld
                     },
@@ -176,11 +177,16 @@ Item {
                         sourceCode: */(
                             webview.getqwebchannel_src() + '\n' +
                                 "new QWebChannel(qt.webChannelTransport, function (channel) { "+
-                                "var old = EventBridge.__proto__; EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
+                                "Object.defineProperty(window, 'WebChannel', { value: EventBridge.channel = channel }); "+
+                                ""+
+                                " var old = EventBridge.__proto__; "+
+                                " EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
                                 "  (old.connects||[]).forEach(function(f) { EventBridge.scriptEventReceived.connect(f); });"+
                                 "  (old.disconnects||[]).forEach(function(f) { EventBridge.scriptEventReceived.disconnect(f); });"+
                                 "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });"+
-                                "} );"
+                                " });"+
+                                "Object.defineProperty(window, 'openEventBridge', { value: function(cb) { cb(EventBridge); }});"+
+                                ""
                         )
                         injectionPoint: WebEngineScript.DocumentCreation
                         worldId: WebEngineScript.MainWorld
