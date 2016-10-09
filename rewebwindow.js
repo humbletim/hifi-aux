@@ -136,5 +136,7 @@ if(!WebWindowEx.$toolWindow) {
     //WebWindowEx.$toolWindow.setVisible(false);
 }
 
-log('...... including:', target);
-Script.include(target);
+Script.setTimeout(function() {
+    log('...... including:', target);
+    Script.include(target);
+}, 1000);
