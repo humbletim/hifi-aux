@@ -55,9 +55,6 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
                 once.calledtwice = true;
 
                 this.$moveto($toolWindow.position);
-                Script.setTimeout(function() {
-                    $toolWindow.emitScriptEvent('<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>');
-                }, 1000);
                 $toolWindow.webEventReceived.connect(this, function(msg) {
                     if (msg === title) {
                         $toolWindow.$tab = this;
@@ -92,7 +89,8 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
                     this.visible = visible;
                     $toolWindow.setVisible($toolWindow.$tabs.filter(function(t) { return t.visible; }).length);
                     if (visible) {
-                        log('reposition on visible', this, JSON.stringify($toolWindow.position));
+                        $toolWindow.emitScriptEvent(title);
+                        log('reposition on visible', title, this, JSON.stringify($toolWindow.position));
                         var t = this;
                         //Script.setTimeout(function() {
                         t.$moveto($toolWindow.position);
@@ -113,7 +111,12 @@ if(!WebWindowEx.$toolWindow) {
         'ToolWindow', 'data:text/html,<style>body{background:black;zoom:1}button{float:left}</style><script>('+
             function() {
                 setTimeout(function() {
-                    EventBridge.scriptEventReceived.connect(function(msg) { output.innerHTML+=msg+'\n' });
+                    EventBridge.scriptEventReceived.connect(function titler(title) {
+                        if (!titler[title]) {
+                            titler[title] = '<button onclick=EventBridge.emitWebEvent(this.innerText)>'+title+'</button>\n';
+                            output.innerHTML += titler[title];
+                        }
+                    });
                 }, 1);
             }+')()</script><div id=output></div>', 480, 64, false);
     WebWindowEx.$toolWindow.$tabmsg = WebWindowEx.signal('$tabmsg');

@@ -136,12 +136,15 @@ function _WebWindowEx(title, url, width, height, toolWindow) {
     // queue $settings messages until the QML side is ready to receive them
     // (by temporarily overriding $set)
     this.$ready = signal('$ready');
+    var $ready2 = this.$ready2 = signal('$ready2');
     this.$ready.connect(this, function(v) {
         //if (v === 'webview')this.setVisible(true);
         exports.debug && log('$ready', v);
+        if (v === 'webview')
+            Script.setTimeout($ready2, 1000);
     });
-    new _QueueMethodUntilSignaled(this.$ready, this, '$set', 3000);
-    new _QueueMethodUntilSignaled(this.$ready, this, 'emitScriptEvent', 3000);
+    new _QueueMethodUntilSignaled(this.$ready2, this, '$set', 3000);
+    new _QueueMethodUntilSignaled(this.$ready2, this, 'emitScriptEvent', 3000);
 
     var visibilityChanged = _window.visibilityChanged || signal('visibilityChanged');
     Object.defineProperties(this, {
