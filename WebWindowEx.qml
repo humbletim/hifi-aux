@@ -168,12 +168,12 @@ Item {
                             "    },"+
                             "    emitWebEvent: function(msg) { EventBridge.emits.push(msg); } "+
                             "  }"+
-                            "};"
+                            "};"+ /*
                         injectionPoint: WebEngineScript.DocumentCreation
                         worldId: WebEngineScript.MainWorld
                     },
                     WebEngineScript {
-                        sourceCode: (
+                        sourceCode: */(
                             webview.getqwebchannel_src() + '\n' +
                                 "new QWebChannel(qt.webChannelTransport, function (channel) { "+
                                 "var old = EventBridge.__proto__; EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +

@@ -107,6 +107,7 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
     }).call(new WebWindowEx(title, url, width, height, toolWindow));
 };
 if(!WebWindowEx.$toolWindow) {
+    log('creating $toolWindow')
     WebWindowEx.$toolWindow = new WebWindowEx(
         'ToolWindow', 'data:text/html,<style>body{background:black;zoom:1}button{float:left}</style><script>('+
             function() {
@@ -119,6 +120,8 @@ if(!WebWindowEx.$toolWindow) {
                     });
                 }, 1);
             }+')()</script><div id=output></div>', 480, 64, false);
+    WebWindowEx.$toolWindow.setPosition(0,0);
+    WebWindowEx.$toolWindow.setVisible(true);
     WebWindowEx.$toolWindow.$tabmsg = WebWindowEx.signal('$tabmsg');
     WebWindowEx.$toolWindow.$tabs = [];
     WebWindowEx.$toolWindow.resized.connect(function(_wh) { WebWindowEx.$toolWindow.size = _wh; });
@@ -131,12 +134,12 @@ if(!WebWindowEx.$toolWindow) {
             WebWindowEx.$toolWindow.$tabs.forEach(function(t) { t.$moveto(WebWindowEx.$toolWindow.position) });
         }, 100);
     });
-    WebWindowEx.$toolWindow.setPosition(0,0);
-    //WebWindowEx.$toolWindow.setVisible(true);
-    //WebWindowEx.$toolWindow.setVisible(false);
 }
 
 Script.setTimeout(function() {
     log('...... including:', target);
     Script.include(target);
+    Script.setTimeout(function() {
+        WebWindowEx.$toolWindow.setVisible(false);
+    }, 1000);
 }, 1000);
