@@ -16,6 +16,8 @@ See also:
 * [localStorage.js](#file-localstorage-js) (in this gist)
 * [Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Storage) (on MDN)
 
+#### Example:
+
 ```javascript
 Script.include('localStorage.js');
 
