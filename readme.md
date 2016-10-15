@@ -6,7 +6,7 @@ These two files work together to provide a subset of the HTML5 `localStorage` AP
 * [localStorage.setItem](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem)
 * [localStorage.removeItem](https://developer.mozilla.org/en-US/docs/Web/API/Storage/removeItem)
 
-Compared to HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), Qt's WebEngineView `localStorage` data is saved *outside of `Interface.ini`, so is generally able to survive a full cache/settings reset.
+Compared to HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), Qt's WebEngineView `localStorage` data is saved *separately from `Interface.ini`*, so is generally able to survive a full cache/settings reset.
 
 See also:
 
