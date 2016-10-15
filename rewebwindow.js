@@ -24,7 +24,7 @@ if (!target) {
     throw new Error('!target', self);
 }
 
-Script.include(Script.resolvePath('WebWindowEx.js') + '#' + new Date().getTime().toString(36));
+Script.include(Script.resolvePath('WebWindowEx.js') + '#' + new Date().getTime().toString(36) + (/debug/.test(self)?'&debug=true':''));
 WebWindow = WebWindowEx;
 
 // WIP: mini faux ToolWindow emulation
@@ -49,8 +49,8 @@ OverlayWebWindow = function(title, url, width, height, toolWindow) {
             log('=========================================================================ToolWindow', title);
             //var thiz=this;
             //Script.setTimeout(function() { thiz.$ready('timeout') ;thiz.setVisible(true);}, 1000);
-            this.$ready.connect(this, function once() {
-                this.$ready.disconnect(this, once);
+            this.$ready2.connect(this, function once() {
+                this.$ready2.disconnect(this, once);
                 if (once.calledtwice) throw new Error('calledtwice');
                 once.calledtwice = true;
 

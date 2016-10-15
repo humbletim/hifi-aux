@@ -16,12 +16,15 @@
 
 Script['this is a Client Interface script'];
 
-var version = '0.0.0';
+var version = '0.0.0a';
 function log() {
     print('[WebWindowEx] '+[].slice.call(arguments).join(' '));
 }
-log('...', version);
+log('...', version, Script.resolvePath('signal.js'));
 
+Script.include(Script.resolvePath('signal.js'));
+
+log('...', typeof signal);
 // Notes and differences from WebWindow:
 //
 //   * "window.EventBridge" isn't automatically exposed on the HTML side.
@@ -48,7 +51,12 @@ _WebWindowEx.qml = Script.resolvePath('WebWindowEx.qml');
 var exports = _WebWindowEx;
 exports.signal = signal;
 exports._QueueMethodUntilSignaled = _QueueMethodUntilSignaled;
-exports.debug = /[d]ebug/.test(Script.resolvePath(''));
+try {
+    throw new Error('stack');
+} catch(e) {
+    exports.debug = /[d]ebug/.test(e.fileName);
+    exports.debug && log('DEBUG MODE ENABLED', e.fileName);
+}
 
 WebWindowEx = _WebWindowEx; // export as a global
 try { module.exports = exports; } catch(e) {} // and if possible as conventional module
@@ -181,7 +189,7 @@ function _WebWindowEx(title, url, width, height, toolWindow) {
                 try {
                     this[emitter].apply(this, args);
                 } catch(e) {
-                    log('error proxying signal: ', msg.emit, e);
+                    log('error proxying signal: ', JSON.stringify({ data: event.data, emitter: emitter, error: e+'', 'this[emitter]': this[emitter].toSource(), 'con': this[emitter] && this[emitter].constructor.name },0,2));
                     throw e;
                 }
                 return;
@@ -219,40 +227,3 @@ function _QueueMethodUntilSignaled($signal, object, method, timeout) {
     return $signal;
 }
 
-// mini "signal" polyfill
-function signal(name) {
-    emit.$name = name;
-    emit.$connects = [];
-    function emit() {
-        var args = arguments;
-        emit.$connects.forEach(function(om,i) {
-            try { om.func.apply(om.scope, args); } catch(e) { log('ERROR: ', name, i, e); }
-        });
-    }
-    emit.$resolve = function(a,b) {
-        var om;
-        if (typeof b === 'string')
-            om = { func: a[b], scope: a };
-        else if (typeof b === 'function')
-            om = { func: b, scope: a };
-        else
-            om = { func: a, scope: b||this };
-
-        if (typeof om.func !== 'function' || !om.scope)
-            throw new Error(
-                'connect-'+name+' -- expected .connect(object, method) or .connect(function)'
-            );
-        exports.debug && log('resolved', name, 'a:'+a, 'b:'+b, 'om.func:'+om.func, 'om.scope:'+typeof om.scope);
-        return om;
-    };
-    emit.connect = function(a,b) { return emit.$connects.push(emit.$resolve(a,b)); };
-    emit.disconnect = function(a,b) {
-        var om = emit.$resolve(a,b);
-        var before = emit.$connects.length;
-        emit.$connects = emit.$connects.filter(function(c) {
-            return c.func !== om.func || c.scope !== om.scope;
-        });
-        exports.debug && log(name, 'before',before,'after',emit.$connects.length);
-    };
-    return emit;
-}
