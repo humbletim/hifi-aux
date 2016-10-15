@@ -13,6 +13,8 @@
 //
 // -- humbletim @ 2016.10.14
 
+var version = '0.0.0';
+
 // inline test and usage example
 localStorage_js_example = function localStorage_js_example() {
     //Script.include('localStorage.js');
@@ -56,6 +58,8 @@ try {
 }
 var basename = filename.split(/[?#]/)[0].split('/').pop();
 log.prefix = '['+basename+'] ';
+
+log(version);
 
 // sibling localStorage.html page
 var HTML_URL = Script.resolvePath('').replace('.js', '.html');
