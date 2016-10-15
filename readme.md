@@ -6,7 +6,7 @@ These two files work together to provide a subset of the HTML5 `localStorage` AP
 * [localStorage.setItem(keyName, keyValue)](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem)
 * [localStorage.removeItem(keyName)](https://developer.mozilla.org/en-US/docs/Web/API/Storage/removeItem)
 
-** links above go to Mozilla Developer Network (MDN) docs **
+*links above go to Mozilla Developer Network (MDN) docs*
 
 Compared to HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), `localStorage` data is saved *separately from `Interface.ini`* -- so is generally able to survive a full cache/settings reset...
 
