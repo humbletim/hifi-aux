@@ -5,7 +5,7 @@ Together these two files operate a hidden OverlayWebWindow to enable `localStora
 Unlike HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), Qt's WebEngineView `localStorage` is saved separately
 and is generally able to survive `Interface.ini` resets.
 
-See [localStorage.js](#file-localStorage.js) for more info.
+See [localStorage.js](#file-localStorage-js) for more info.
 
 ```javascript
 Script.include('localStorage.js');
