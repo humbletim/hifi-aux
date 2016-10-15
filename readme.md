@@ -1,10 +1,17 @@
 #### localStorage.js + localStorage.html
 
-These two files work together to provide a `localStorage` API for Client scripts.
+These two files work together to provide a subset of the HTML5 `localStorage` API to Client scripts:
 
-Unlike HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), Qt's WebEngineView `localStorage` is saved separately so is currently able to survive a full reset of `Interface.ini`.
+* [localStorage.getItem](https://developer.mozilla.org/en-US/docs/Web/API/Storage/getItem)
+* [localStorage.setItem](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem)
+* [localStorage.removeItem](https://developer.mozilla.org/en-US/docs/Web/API/Storage/removeItem)
 
-See [localStorage.js](#file-localstorage-js) for more info.
+Compared to HiFi's built-in [Settings API](https://readme.highfidelity.com/docs/settings-api), Qt's WebEngineView `localStorage` data is saved *outside of `Interface.ini`, so is generally able to survive a full cache/settings reset.
+
+See also:
+
+* [localStorage.js](#file-localstorage-js)
+* [MDN: Web Storage API](https://developer.mozilla.org/en-US/docs/Web/API/Storage)
 
 ```javascript
 Script.include('localStorage.js');
