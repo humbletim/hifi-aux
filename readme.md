@@ -2,9 +2,10 @@
 
 These two files work together to provide a subset of the HTML5 `localStorage` API to Client scripts:
 
-* [localStorage.getItem(keyName)](https://developer.mozilla.org/en-US/docs/Web/API/Storage/getItem)
-* [localStorage.setItem(keyName, keyValue)](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem)
-* [localStorage.removeItem(keyName)](https://developer.mozilla.org/en-US/docs/Web/API/Storage/removeItem)
+* [`localStorage.getItem(keyName)`](https://developer.mozilla.org/en-US/docs/Web/API/Storage/getItem)
+* [`localStorage.setItem(keyName, keyValue)`](https://developer.mozilla.org/en-US/docs/Web/API/Storage/setItem)
+* [`localStorage.removeItem(keyName)`](https://developer.mozilla.org/en-US/docs/Web/API/Storage/removeItem)
+* `localStorage.$ready([callback])` *(non-standard -- allows for async initialization from Client scripts)*
 
 *(note: links above go to Mozilla Developer Network (MDN) docs)*
 
