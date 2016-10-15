@@ -199,6 +199,18 @@ Item {
                 ]
                 Component.onCompleted: $emit('$ready', 'webview');
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
+
+                onLoadingChanged: {
+                    // Required to support clicking on "hifi://" links
+                    if (WebEngineView.LoadStartedStatus == loadRequest.status) {
+                        var url = loadRequest.url.toString();
+                        if (urlHandler.canHandleUrl(url)) {
+                            if (urlHandler.handleUrl(url)) {
+                                webview.stop();
+                            }
+                        }
+                    }
+                }
             }
         }
     }
