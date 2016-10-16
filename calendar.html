@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+    <head>
+      <title>HiFi Event Calendar Time Zonifier</title>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.4/jstz.min.js"></script>
+    </head>
+    <body bgcolor='gray'>
+      <span>calculating timezone...</span>
+      <script>
+        tz = jstz.determine().name();
+        document.write(tz);
+      </script>
+       &nbsp; redirecting.
+       <script type="text/javascript">
+        setTimeout(function() {
+            location.href = 'https://www.google.com/calendar/embed?showNav=0&showDate=0&showPrint=0&showCalendars=0&mode=WEEK&height=600&wkst=1&color=%232952A3&src=highfidelity.io_iag7v8rp0sgtl9jnm0aevu1bks%40group.calendar.google.com&ctz='+encodeURIComponent(tz)+'#';
+        }, 1000);
+       </script>
+    </body>
+</html>
