@@ -1,0 +1,96 @@
+<!--
+//
+//    Seamless HTML5 UI toolbar: The HTML5 UI
+//    2016.08.01 humbletim 
+//
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OverlayWebWindowEx - index.html</title>
+    <!--script src="qrc:///qtwebchannel/qwebchannel.js"></script-->
+    <script src="qwebchannel.js"></script>
+    <script>
+
+// could move these setup functions into a helper script include
+// ... but for now am leaving everything together for easier gist'ing
+
+(function universalBridgeLoader() {
+    try {
+        EventBridge.exists; // will already exist for classic WebWindows
+    } catch(e) {
+        // ... but needs to be bootstrapped for Qml WebWindows
+        WebChannel = new QWebChannel(qt.webChannelTransport, function (channel) {
+            EventBridge = WebChannel.objects.eventBridge || // OverlayWebWindowEx
+            WebChannel.objects.eventBridgeWrapper.eventBridge; // OverlayWebWindow
+            initialize();
+        });
+        return;
+    }
+    initialize();
+})();
+
+function initialize() {
+    function rerouteEvent(evt) {
+        window.onmessage({
+            origin: 'script',
+            data: JSON.parse(evt),
+            target: 'web',
+            tstamp: +new Date
+        });
+    }
+    EventBridge.scriptEventReceived.connect(rerouteEvent);
+
+    // have to disconnect this (or reloading same page causes duplicates signal connections)
+    window.addEventListener('beforeunload', function() {
+        EventBridge.scriptEventReceived.disconnect(rerouteEvent);
+    });
+
+    function logEvent(event) {
+        log.innerText += (event.origin||event.source) + ' -> ' + event.target + ' ' + JSON.stringify(event.data) + '\n';
+        log.scrollTop = Infinity;
+    }
+
+    postMessage = function(message, targetOrigin) {
+        var event = {
+            target: targetOrigin || '*',
+            data: message,
+            source: 'web',
+            tstamp: +new Date
+        };
+        logEvent(event); // debugging -- log outbound messages as well
+        EventBridge.emitWebEvent(JSON.stringify(event));
+    };
+
+    console.info('EventBridge rerouting initialized');
+
+    // send a Web -> Script message
+    postMessage('hi from the web side ' + [innerWidth,innerHeight].join('x') + ' ' + navigator.userAgent, '*');
+
+    // incoming Script -> Web messages willarrive here
+    window.onmessage = function(event) {
+        logEvent(event);
+        if (event.data === 'ping')
+            postMessage('pong! local time is: ' + new Date, event.origin);
+    };
+}
+</script>
+    <style>
+      body { background: gray; position: relative; overflow: hidden; margin: 0; padding: 0; }
+      #log { font-size: .7em; background: black; color: white; overflow-y: scroll; position: relative; width: 100%; height: 80%; }
+    </style>
+    <button onclick='postMessage(new Date)'>send Date</button>
+    <button onclick='postMessage("ping")'>send ping</button>
+    <button style='float:right' onclick='log.innerText=""'>(clear log)</button>
+    <pre id=log><script>document.write(new Array(25).join('\n'))</script></pre>
+
+    <script>
+      window.onresize = function() {
+        document.body.style.height = innerHeight+'px';
+        document.body.style.width = innerWidth+'px';
+      };
+     window.onresize();
+   </script>
+  </body>
+</html>
