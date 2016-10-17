@@ -68,6 +68,19 @@ FocusScope {
             horizontalAlignment: Text.AlignLeft
         }
     }
+    QtObject {
+        id: settings
+        property alias gravity: gravity.checked
+        property alias createPlaceholder: createPlaceholder.checked
+    }
+    Row {
+        anchors.bottom: root.bottom
+        z: 1
+        anchors.bottomMargin: -24
+        property var styleCB: Component { id: styleCB; CheckBoxStyle { label: Text { text: control.text; color: 'white' } } }
+        CheckBox { id: gravity; checked: true; text: 'gravity';  style: styleCB }
+        CheckBox { id: createPlaceholder; checked: true; text: 'always attempt to create photo frame'; style: styleCB }
+    }
     Button {
         z:1
         id: button
@@ -84,6 +97,20 @@ FocusScope {
         onClicked: {
             console.info('click!', filename, mapping, (bg.source+'').substr(0,32));
 
+            if (!Entities.serversExist() || (!Entities.canRezTmp() && !Entities.canRez())) {
+                if (settings.createPlaceholder) {
+                    return sendToScript({
+                        type: 'addFrame',
+                        //src: bg.source,
+                        //hash: hash,
+                        //mapping: mapping,
+                        //path: filename,
+                        settings: settings
+                    });
+                } else
+                    return error += !Entities.serversExist() ? '!serversExist()' : 'no rez permissions';
+            }
+
             if (enabled && filename && mapping) {
                 enabled = false; // prevent fallthru clicking bug
 
@@ -95,6 +122,17 @@ FocusScope {
                     console.info('completed', mapping, err, url);
                     if (err) {
                         error += err;
+                        if (settings.createPlaceholder) {
+                            return sendToScript({
+                                type: 'addFrame',
+                                //src: bg.source,
+                                //hash: hash,
+                                //mapping: mapping,
+                                //path: filename,
+                                settings: settings
+                            });
+                        }
+
                         window.forceActiveFocus()
                         return enabled = true;
                     } else
@@ -116,7 +154,8 @@ FocusScope {
                             src: bg.source,
                             hash: hash,
                             mapping: mapping,
-                            path: filename
+                            path: filename,
+                            settings: settings
                         });
                     });
                 }, false);
