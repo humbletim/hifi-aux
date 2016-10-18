@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+    <head>
+      <title>HiFi Event Calendar Time Zonifier</title>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.4/jstz.min.js"></script>
+    </head>
+    <body bgcolor='#ddd'>
+      <pre id=output>calculating timezone...</pre>
+    <script>;
+var defaults = { ctz: jstz.determine().name() };
+('showNav=0&showDate=0&showPrint=0&showCalendars=0&mode=WEEK&wkst=1&color=%232952A3&src=highfidelity.io_iag7v8rp0sgtl9jnm0aevu1bks%40group.calendar.google.com'+
+ '&'+location.hash.replace(/^#/,''))
+    .split('&')
+    .filter(Boolean)
+    .forEach(function(kvp) {
+        var arr = kvp.split('='),
+            k = unescape(arr.shift()),
+            v = unescape(arr.join('='));
+        defaults[k] = v;
+    });
+var debug = defaults.debug; delete defaults.debug;
+
+var querystring = Object.keys(defaults).map(function(i) {
+    return encodeURIComponent(i) + '=' + encodeURIComponent(defaults[i]);
+}).join('&') + '#';
+var url = 'https://www.google.com/calendar/embed?'+querystring;
+
+document.getElementById('output').innerHTML = JSON.stringify({
+    defaults: defaults,
+    querystring: querystring,
+    url: url
+},0,2);
+
+if (debug)
+    document.write('<a href="'+url+'">'+url+'</a>');
+else {
+    document.write('redirecting...');
+    setTimeout(function() {
+        try { window.location.replace(url); } catch(e) {
+            location.href = url;
+        }
+    }, 1000);
+}
+
+</script>
+    </body>
+</html>
