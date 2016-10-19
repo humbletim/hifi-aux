@@ -1,0 +1,30 @@
+{
+    "_v": "2016.10.17",
+
+    "users": {
+        "@CtrlAltDavid": [
+            "http://ctrlaltstudio.com/downloads/hifi/scripts/edit.js",
+            "http://ctrlaltstudio.com/downloads/hifi/scripts/chat.js",
+            "http://ctrlaltstudio.com/downloads/hifi/scripts/nametags.js",
+            "http://ctrlaltstudio.com/downloads/hifi/scripts/inspect.js",
+            "https://forums.highfidelity.com/users/CtrlAltDavid # (Forums...)"
+        ],
+        "@Menithal": [
+            "http://www.norteclabs.com/HF/scripts/utility/AvatarFollowerUI.js",
+            "https://forums.highfidelity.com/users/menithal # (Forums...)"
+        ]
+    },
+
+    "other": {
+        "Links": [
+            "calendar.html # HiFi Event Calendar",
+            "https://forums.highfidelity.com/latest # Latest Forum Posts",
+            "https://forums.highfidelity.com/t/random-picture-thread/244/last # Random Picture Thread",
+            "https://github.com/highfidelity/hifi/issues # GitHub Issues"
+        ]
+    },
+
+    "disabled": {
+
+    }
+}
