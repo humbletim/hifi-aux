@@ -17,7 +17,7 @@
 
     "other": {
         "Links": [
-            "calendar.html # HiFi Event Calendar",
+            "calendar.html#showNav=1&mode=MONTH&showDate=1 # HiFi Event Calendar",
             "https://forums.highfidelity.com/latest # Latest Forum Posts",
             "https://forums.highfidelity.com/t/random-picture-thread/244/last # Random Picture Thread",
             "https://github.com/highfidelity/hifi/issues # GitHub Issues"
