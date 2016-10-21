@@ -27,8 +27,8 @@ var userData = kvargs.$object.ProceduralEntity || {
     ProceduralEntity: {
         version: kvargs.version,
         shaderUrl: kvargs.shaderUrl || kvargs.frag,
-        uniforms: kvargs.uniforms,
-        channels: kvargs.channels
+        uniforms: kvargs.$object.uniforms,
+        channels: kvargs.$object.channels
     }
 };
 
