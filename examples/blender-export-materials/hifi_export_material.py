@@ -345,18 +345,14 @@ glsl_boilerplate = '''
 // HIFI PROCEDURAL_V1
 vec4 getProceduralColor() {
     vec3 diffuse = material_diffuse_color * material_diffuse_intensity;
-    vec3 specular = material_specular_color * material_specular_intensity;
-    float shininess = material_specular_hardness*(128.0/510.0);
     return vec4(diffuse,1);
 }
 
 // HIFI PROCEDURAL_V1
 float getProceduralColors(inout vec3 diffuse, inout vec3 specular, inout float shininess) {
     specular = material_specular_color * material_specular_intensity;
-    diffuse = material_diffuse_color * material_diffuse_intensity +
-        material_emit*material_diffuse_color -
-        material_emit*specular/16;;
-    shininess = material_specular_hardness*(128.0/510.0);
+    diffuse = material_diffuse_color * material_diffuse_intensity;
+    shininess = material_specular_hardness * ( 128.0 / 510.0 );
     return material_emit;
 }
 '''
