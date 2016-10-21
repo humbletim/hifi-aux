@@ -35,8 +35,10 @@ function extract_parameters_js_example() {
 //  }
 function extractParameters(url, mergeInto) {
     mergeInto = mergeInto || {};
-    mergeInto.$object = mergeInto.$object || {};
-    mergeInto.$array = mergeInto.$array || {};
+    if (!mergeInto.$object)
+        Object.defineProperty(mergeInto, '$object', { value: {} });
+    if (!mergeInto.$array)
+        Object.defineProperty(mergeInto, '$array', { value: {} });
 
     function _merge(k,v) {
         mergeInto[k] = v;
