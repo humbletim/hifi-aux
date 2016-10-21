@@ -348,7 +348,7 @@ vec4 getProceduralColor() {
     return vec4(diffuse,1);
 }
 
-// HIFI PROCEDURAL_V1
+// HIFI PROCEDURAL_V2
 float getProceduralColors(inout vec3 diffuse, inout vec3 specular, inout float shininess) {
     specular = material_specular_color * material_specular_intensity;
     diffuse = material_diffuse_color * material_diffuse_intensity;
