@@ -27,6 +27,8 @@ Item {
         appwin = windowMaker.createObject(null, { window: window, bridge: fauxroot.bridge });
         $emit('$ready', 'fauxroot');
     }
+    objectName: 'webwindowex-'+new Date().getTime().toString(36)
+
     Connections {
         target: window
         Component.onDestruction: {
@@ -86,6 +88,7 @@ Item {
         //log('fromScript', JSON.stringify(event));
 
         if (event.target === 'qml') {
+            log(event.target, event.data);
             if (event.data === 'deleteLater')
                 return appwin.destroy();
             else if (event.data === 'raise')
@@ -125,12 +128,14 @@ Item {
             Component.onDestruction: {
                 console.info('popoutwin.onDestruction', title);
                 $emit('$destroyed', 'popoutwin');
+                window && window.close && window.close();
                 window && window.destroy && window.destroy();
+                $emit('closed','popoutwin');
             }
 
             onClosing: {
                 console.info('popoutwin.onClosing', title, close.accepted);
-                $emit('closed');
+                $emit('closed', 'popoutwin');
                 //window.windowClosed && window.windowClosed();
             }
 
@@ -151,43 +156,60 @@ Item {
                 focus: true
                 webChannel.registeredObjects: [bridge]
                 profile.httpUserAgent:  "Mozilla/5.0 Chrome (HighFidelityInterface; WebWindowEx)"
-                function getqwebchannel_src() {
+                function getqwebchannel_src(url) {
+                    url = url || "qrc:///qtwebchannel/qwebchannel.js";
                     var xhr = new XMLHttpRequest();
-                    xhr.open('GET', "qrc:///qtwebchannel/qwebchannel.js", false);
+                    xhr.open('GET', url, false);
                     xhr.send();
-                    return xhr.response;
+                    return '//@ sourceURL='+url+'\n'+xhr.response;
+                    //return xhr.response;
                 }
                 userScripts: [
+                    // WebEngineScript {
+                    //     sourceCode: webview.getqwebchannel_src()
+                    //     injectionPoint: WebEngineScript.DocumentCreation
+                    //     worldId: WebEngineScript.MainWorld
+                    // },
                     WebEngineScript {
-                        sourceCode: "var WebChannel, EventBridge, QWebChannel, openEventBridge;"+
-                            "Object.defineProperty(window, 'EventBridge',{ value: { "+
-                            "  __proto__: { "+
-                            "     emits: [], connects: [], disconnects: [],"+
-                            "     scriptEventReceived: { "+
-                            "       connect: function(f) { EventBridge.connects.push(f);  }, "+
-                            "       disconnect: function(f) { EventBridge.disconnects.push(f); } "+
-                            "    },"+
-                            "    emitWebEvent: function(msg) { EventBridge.emits.push(msg); } "+
-                            "  }"+
-                            "}});"+ /*
-                        injectionPoint: WebEngineScript.DocumentCreation
-                        worldId: WebEngineScript.MainWorld
-                    },
-                    WebEngineScript {
-                        sourceCode: */(
-                            webview.getqwebchannel_src() + '\n' +
-                                "new QWebChannel(qt.webChannelTransport, function (channel) { "+
-                                "Object.defineProperty(window, 'WebChannel', { value: EventBridge.channel = channel }); "+
-                                ""+
-                                " var old = EventBridge.__proto__; "+
-                                " EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
-                                "  (old.connects||[]).forEach(function(f) { EventBridge.scriptEventReceived.connect(f); });"+
-                                "  (old.disconnects||[]).forEach(function(f) { EventBridge.scriptEventReceived.disconnect(f); });"+
-                                "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });"+
-                                " });"+
-                                "Object.defineProperty(window, 'openEventBridge', { value: function(cb) { cb(EventBridge); }});"+
-                                ""
-                        )
+                        sourceCode: [
+                            "//@ sourceURL=WebWindowEx.qml:165+\n",
+                            "var WebChannel, EventBridge, QWebChannel, openEventBridge;",
+                            "function __WebWindowExInit__() {console.info('__WebWindowExInit__' + location);Object.defineProperty(window, 'EventBridge',{ value: { ",
+                            "  emitWebEvent: function(msg) { return this.__proto__.emitWebEvent(msg); },",
+                            "  __proto__: { ",
+                            "     emits: [], connects: [], disconnects: [],",
+                            "     scriptEventReceived: { ",
+                            "       connect: function(f) { EventBridge.connects.push(f);  }, ",
+                            "       disconnect: function(f) { EventBridge.disconnects.push(f); } ",
+                            "    },",
+                            "    emitWebEvent: function(msg) { EventBridge.emits.push(msg); } ",
+                            "  }",
+                            "}});",
+                    //     ].join('\n')
+                    //     injectionPoint: WebEngineScript.DocumentCreation
+                    //     worldId: WebEngineScript.MainWorld
+                    // },
+                    // WebEngineScript {
+                    //     sourceCode: [
+                            "//@ sourceURL=WebWindowEx.qml:189+\n",
+                            "__WebWindowExInit__.QWebChannel = QWebChannel; QWebChannel = null;",
+                            "Object.defineProperty(window, 'openEventBridge', { value: function(cb) { console.info('openEventBridge noop');if (EventBridge.channel)cb(EventBridge);else __WebWindowExInit__.bbb = cb; }});",
+                            "Object.defineProperty(window, 'QWebChannel', { value: function(a,cb) { console.info('~~QWebChannel noop'+[typeof WebChannel,typeof EventBridge.channel,typeof window.WebChannel]);if(EventBridge.channel)cb(EventBridge.channel);else __WebWindowExInit__.qqq=cb;; }});",
+                            "new __WebWindowExInit__.QWebChannel(qt.webChannelTransport, function (channel) { ",
+                            "Object.defineProperty(window, 'WebChannel', { value: EventBridge.channel = channel }); ",
+                            " var old = EventBridge.__proto__; ",
+                            "console.info('QWebChannel provisioned; queue:'+[old.connects&&old.connects.length,old.disconnects&&old.disconnects.length,old.emits&&old.emits.length] + location);",
+                            " EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
+                                "  (old.connects||[]).forEach(function(f) { EventBridge.scriptEventReceived.connect(f); });",
+                            "  (old.disconnects||[]).forEach(function(f) { EventBridge.scriptEventReceived.disconnect(f); });",
+                            "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });",
+                            "if (__WebWindowExInit__.qqq) {console.info('deferedqqq'); __WebWindowExInit__.qqq.call(this, EventBridge.channel); }",
+                            "if (__WebWindowExInit__.bbb) {console.info('deferedbbb'); __WebWindowExInit__.bbb.call(this, EventBridge); }",
+                            " });",
+                            "}",
+                            webview.getqwebchannel_src(),
+                            "location.protocol !== 'about:' && __WebWindowExInit__();"
+                        ].join('\n')
                         injectionPoint: WebEngineScript.DocumentCreation
                         worldId: WebEngineScript.MainWorld
                     },
@@ -197,14 +219,20 @@ Item {
                         worldId: WebEngineScript.MainWorld
                     }
                 ]
-                Component.onCompleted: $emit('$ready', 'webview');
+                Component.onCompleted: {
+                    sendToScript({ target: 'WebWindowEx', origin: 'qml', data: { objectName: fauxroot.objectName }})
+                    $emit('$ready', 'webview');
+                }
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
 
                 onLoadingChanged: {
+                    console.info('onLoadingChanged');
                     // Required to support clicking on "hifi://" links
                     if (WebEngineView.LoadStartedStatus == loadRequest.status) {
                         var url = loadRequest.url.toString();
-                        if (urlHandler.canHandleUrl(url)) {
+                        //log('testing canHandleUrl', url);
+                        if (/^hifi:/.test(url) && urlHandler.canHandleUrl(url)) {
+                            log('calling handleUrl!', url)
                             if (urlHandler.handleUrl(url)) {
                                 webview.stop();
                             }
