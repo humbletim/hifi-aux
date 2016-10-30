@@ -161,7 +161,9 @@ Item {
                     var xhr = new XMLHttpRequest();
                     xhr.open('GET', url, false);
                     xhr.send();
-                    return '//@ sourceURL='+url+'\n'+xhr.response;
+                    return '//@ sourceURL='+url+'\n'+(xhr.responseText+'').replace(
+                        'channel.execCallbacks[message.id]',
+                        '(channel.execCallbacks[message.id]||console.warn.bind(console, "!channel.execCallbacks[message.id] "+JSON.stringify(message)))');
                     //return xhr.response;
                 }
                 userScripts: [
@@ -226,7 +228,7 @@ Item {
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
 
                 onLoadingChanged: {
-                    console.info('onLoadingChanged');
+                    //console.info('onLoadingChanged', loadRequest.url);
                     // Required to support clicking on "hifi://" links
                     if (WebEngineView.LoadStartedStatus == loadRequest.status) {
                         var url = loadRequest.url.toString();
