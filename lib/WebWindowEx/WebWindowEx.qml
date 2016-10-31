@@ -216,7 +216,7 @@ Item {
                         worldId: WebEngineScript.MainWorld
                     },
                     WebEngineScript {
-                        sourceCode: "console.warn('disabling context menu to workaround QML Popup issue');window.addEventListener('contextmenu', function(evt) { evt.preventDefault(); });"
+                        sourceCode: "if(0)console.warn('disabling context menu to workaround QML Popup issue');window.addEventListener('contextmenu', function(evt) { evt.preventDefault(); });"
                         injectionPoint: WebEngineScript.DocumentReady
                         worldId: WebEngineScript.MainWorld
                     }
