@@ -12,48 +12,65 @@
 -->
   <head>
     <title>localStorage connector</title>
-    <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
     <script>
-    function log() {
-        var out = [].slice.call(arguments).join(' ');
-        debug.value = debug.value.split('\n').slice(-10).concat(out).join('\n');
-    }
+        if (!window.EventBridge && !window.QWebChannel && window.qt)
+          document.write('<SCR src="qrc:///qtwebchannel/qwebchannel.js"></SCR>'.replace(/SCR/g,'script'));
+    </script>
+    <script>;
+function log() {
+    var out = [].slice.call(arguments).join(' ');
+    debug.value = debug.value.split('\n').slice(-10).concat(out).join('\n');
+}
 
+
+onerror = function(evt) {
+    console.error('localStorage error:' +[evt.message,evt.stack]);
+};
+
+if (window.EventBridge)
+    initialize();
+else if (window.qt)
     new QWebChannel(qt.webChannelTransport, function(channel) {
         EventBridge = channel.objects.eventBridgeWrapper.eventBridge;
-        EventBridge.scriptEventReceived.connect(function(raw){
-            log('scriptEventReceived', raw);
-            try {
-                var msg = JSON.parse(raw);
-                if (msg.id === 'confirm')
-                    return log('...sync confirmed');
-                if (msg.setItem)
-                    localStorage.setItem(msg.setItem, msg.value);
-                if (msg.removeItem)
-                    localStorage.removeItem(msg.removeItem);
-                if (msg.id) {
-                    if (msg.getItem || msg.setItem || msg.removeItem)
-                        EventBridge.emitWebEvent(JSON.stringify({
-                            id: msg.id,
-                            result: localStorage.getItem(msg.getItem || msg.setItem || msg.removeItem)
-                        }));
-                    else if (msg.sync)
-                        EventBridge.emitWebEvent(JSON.stringify({ id: msg.id, localStorage: localStorage }));
-                }
-            } catch(e) {
-                log('error:' ,e);
-            }
-        });
-        setTimeout(function() {
-            log('initial localStorage sync...');
-            EventBridge.emitWebEvent(JSON.stringify({ id: 'confirm', localStorage: localStorage }));
-        }, 100);
+        initialize();
     });
+else
+    throw new Error('!qt');
 
-    window.addEventListener('DOMContentLoaded', window.onresize = function() {
-        debug.style.width = (innerWidth)+'px';
-        debug.style.height = (innerHeight - debug.offsetTop)+'px';
+function initialize() {
+    EventBridge.scriptEventReceived.connect(function(raw){
+        log('scriptEventReceived', raw);
+        try {
+            var msg = JSON.parse(raw);
+            if (msg.id === 'confirm')
+                return log('...sync confirmed');
+            if (msg.setItem)
+                localStorage.setItem(msg.setItem, msg.value);
+            if (msg.removeItem)
+                localStorage.removeItem(msg.removeItem);
+            if (msg.id) {
+                if (msg.getItem || msg.setItem || msg.removeItem)
+                    EventBridge.emitWebEvent(JSON.stringify({
+                        id: msg.id,
+                        result: localStorage.getItem(msg.getItem || msg.setItem || msg.removeItem)
+                    }));
+                else if (msg.sync)
+                    EventBridge.emitWebEvent(JSON.stringify({ id: msg.id, localStorage: localStorage }));
+            }
+        } catch(e) {
+            log('error:' ,e);
+        }
     });
+    setTimeout(function() {
+        log('initial localStorage sync...');
+        EventBridge.emitWebEvent(JSON.stringify({ id: 'confirm', localStorage: localStorage }));
+    }, 100);
+}
+
+window.addEventListener('DOMContentLoaded', window.onresize = function() {
+    debug.style.width = (innerWidth)+'px';
+    debug.style.height = (innerHeight - debug.offsetTop)+'px';
+});
     </script>
     <style>
       body { overflow: hidden; width: 640px; margin:0; padding:0 }
