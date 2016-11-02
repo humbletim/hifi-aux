@@ -1,8 +1,30 @@
+// ... script to help test AC ATP upload / permissions
+//
+// gist of the testing strategy:
+//
+//   1) Use `Assets.uploadData` to define a new .js "blob"
+//      * containing a baked-in uniq timestamp along with JavaScript that emits it when executed
+//      ==> if successful this step yields a new ATP hash
+//
+//   2) Use `Assets.setMapping` to map that ATP hash to "atp:/test/ac-upload.js"
+//      ==> if successful well... callback(err, path) args aren't currently returned by the API, so...
+//
+//   3) Use `Script.include` as a different way to prove the mapping actually worked
+//      ==> if successful the included scripts emits its timestamp both to the log and global Array variable
+//
+//   4) Compare emitted timestamp with expected value (which changes each test run)
+//      ==> if matching then in theory there's no way everything didn't work?
+//
+
+var version = '0.0.1';
+
 var ATP_PATH = '/test/atp-upload.js',
     RESULTS  = [],
     UNIQUE   = new Date().getTime().toString(36),
     LOG      = function() { print('---- test-ac-atp |', [].join.call(arguments, ' ')); },
     JS       = '('+testfunc.toString()+')('+JSON.stringify(UNIQUE)+')';
+
+LOG(version);
 
 function testfunc(unique) {
     var self = Script.resolvePath('');
