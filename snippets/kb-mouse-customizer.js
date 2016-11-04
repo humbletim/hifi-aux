@@ -49,6 +49,8 @@ Function.prototype.bind = Function.prototype.bind||function(){var fn=this,s=[].s
 
 try { throw new Error('stack'); } catch(e) {
     var filename = e.fileName;
+    Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
+    try { ua.used(extractParameters(e.fileName)); } catch(e) { log('ERROR:',e); }
 }
 
 if (!/[?#]/.test(filename)) {
