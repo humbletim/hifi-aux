@@ -156,7 +156,7 @@ function make_replacer(options) {
                     }
                 });
         }
-        if (typeof value === 'function')
+        if (options.functions && typeof value === 'function')
             return (value+'').split('{')[0].trim().replace(/[)][(][)]$/,')').replace(/\s/g,'').replace(/^function/,'$& ');
         return value;
     };
