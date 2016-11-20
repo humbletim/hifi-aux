@@ -24,7 +24,7 @@ ProtocolVersions.fromRelease = function(rel) { return VERSIONS.byRelease[tag]; }
 ProtocolVersions.fromProtocolVersion = function(proto) { return VERSIONS.byProtocol[proto]; }
 
 // ### SNIP ###
-// machine generated mapping as of 2016.11.03
+// machine generated mapping as of 2016.11.19
 var VERSIONS = {
   "byRelease": {
     "Beta Release 10": {
@@ -94,34 +94,104 @@ var VERSIONS = {
     "Beta Release 25": {
       "release": "Beta Release 25",
       "tag": "RELEASE-5622",
-      "protocolVersion": "rv2J9jEsL4Y5Ja305uGQUQ=="
+      "protocolVersion": "qSSjFrvX4sCykLyqIGobog=="
+    },
+    "Beta Release 26": {
+      "release": "Beta Release 26",
+      "tag": "RELEASE-5667",
+      "protocolVersion": "qSSjFrvX4sCykLyqIGobog=="
+    },
+    "Beta Release 27": {
+      "release": "Beta Release 27",
+      "tag": "RELEASE-5693",
+      "protocolVersion": "Bi6uXx49SajPhG6yxsmjRQ=="
     }
   },
   "byProtocol": {
     "c5ggHVakCjpB1pypIDjJjw==": {
       "release": "Beta Release 17",
+      "releases": [
+        "Beta Release 16",
+        "Beta Release 17"
+      ],
       "tag": "RELEASE-5206",
+      "tags": [
+        "RELEASE-5179",
+        "RELEASE-5206"
+      ],
       "protocolVersion": "c5ggHVakCjpB1pypIDjJjw=="
     },
     "glPTM03xmviVGxSFw9NT9g==": {
       "release": "Beta Release 19",
+      "releases": [
+        "Beta Release 18",
+        "Beta Release 19"
+      ],
       "tag": "RELEASE-5298",
+      "tags": [
+        "RELEASE-5240",
+        "RELEASE-5298"
+      ],
       "protocolVersion": "glPTM03xmviVGxSFw9NT9g=="
     },
     "dn7MHlVJtcVGrL66DSrg3A==": {
       "release": "Beta Release 20",
+      "releases": [
+        "Beta Release 20"
+      ],
       "tag": "RELEASE-5335",
+      "tags": [
+        "RELEASE-5335"
+      ],
       "protocolVersion": "dn7MHlVJtcVGrL66DSrg3A=="
     },
     "WYNuoFQq0ssJ0oYf+4Cnuw==": {
       "release": "Beta Release 22",
+      "releases": [
+        "Beta Release 21",
+        "Beta Release 22"
+      ],
       "tag": "RELEASE-5424",
+      "tags": [
+        "RELEASE-5396",
+        "RELEASE-5424"
+      ],
       "protocolVersion": "WYNuoFQq0ssJ0oYf+4Cnuw=="
     },
     "rv2J9jEsL4Y5Ja305uGQUQ==": {
-      "release": "Beta Release 25",
-      "tag": "RELEASE-5622",
+      "release": "Beta Release 24",
+      "releases": [
+        "Beta Release 24"
+      ],
+      "tag": "RELEASE-5572",
+      "tags": [
+        "RELEASE-5572"
+      ],
       "protocolVersion": "rv2J9jEsL4Y5Ja305uGQUQ=="
+    },
+    "qSSjFrvX4sCykLyqIGobog==": {
+      "release": "Beta Release 26",
+      "releases": [
+        "Beta Release 25",
+        "Beta Release 26"
+      ],
+      "tag": "RELEASE-5667",
+      "tags": [
+        "RELEASE-5622",
+        "RELEASE-5667"
+      ],
+      "protocolVersion": "qSSjFrvX4sCykLyqIGobog=="
+    },
+    "Bi6uXx49SajPhG6yxsmjRQ==": {
+      "release": "Beta Release 27",
+      "releases": [
+        "Beta Release 27"
+      ],
+      "tag": "RELEASE-5693",
+      "tags": [
+        "RELEASE-5693"
+      ],
+      "protocolVersion": "Bi6uXx49SajPhG6yxsmjRQ=="
     }
   },
   "byTag": {
@@ -192,7 +262,17 @@ var VERSIONS = {
     "RELEASE-5622": {
       "tag": "RELEASE-5622",
       "release": "Beta Release 25",
-      "proto": "rv2J9jEsL4Y5Ja305uGQUQ=="
+      "proto": "qSSjFrvX4sCykLyqIGobog=="
+    },
+    "RELEASE-5667": {
+      "tag": "RELEASE-5667",
+      "release": "Beta Release 26",
+      "proto": "qSSjFrvX4sCykLyqIGobog=="
+    },
+    "RELEASE-5693": {
+      "tag": "RELEASE-5693",
+      "release": "Beta Release 27",
+      "proto": "Bi6uXx49SajPhG6yxsmjRQ=="
     }
   }
-};
+}
