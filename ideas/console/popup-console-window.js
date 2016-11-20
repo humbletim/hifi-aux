@@ -36,7 +36,7 @@ if (typeof Script === 'object') {
         styles: '',
         autoshow: true,
         channel: 'console',
-        exportRemoteAs: 'PopupConsoleWindowRemote',
+        global: 'console',
         invert: false,
         uicfg: false,
     };
@@ -52,8 +52,6 @@ if (typeof Script === 'object') {
     var global = (1,eval)('this');
     global.PopupConsoleWindow = PopupConsoleWindow;
     try { module.exports = PopupConsoleWindow; } catch(e) {}
-    if (params['exportRemoteAs'])
-        global[params['exportRemoteAs']] = PopupConsoleWindow.proxy();
 
     var methods = 'clear,log,debug,info,warn,error'.split(',');
 
@@ -392,8 +390,13 @@ if (typeof Script === 'object') {
     };
 
     // if visible specified in URL start up the window
-    if (params.visible)
-        console = new PopupConsoleWindow();
+    if (params.visible) {
+        print('declaring direct console as', params['global']);
+        global[params['global']] = new PopupConsoleWindow();
+    } else if (params['global']) {
+        print('exporting remote console as', params['global']);
+        global[params['global']] = PopupConsoleWindow.proxy();
+    }
     
 } else {
     // HTMLmode
