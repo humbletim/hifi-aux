@@ -113,7 +113,8 @@ function extractParameters(url, mergeInto) {
 }
 
 // exports
-try { var global = module.exports = extractParameters;  } catch(e) { global = (1,eval)('this'); }
+try { module.exports = extractParameters;  } catch(e) { }
+var global = (1,eval)('this');
 global.extractParameters = extractParameters;
 global.extract_parameters_js_example = extract_parameters_js_example;
 
