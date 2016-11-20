@@ -41,7 +41,7 @@ if (typeof Script === 'object') {
         uicfg: false,
     };
     defaultOptions.FONTS = _FONTS;
-    defaultOptions.font = _FONTS[Math.floor(Math.random() * _FONTS.length)];
+    defaultOptions.font = 'Electrolize';//_FONTS[Math.floor(Math.random() * _FONTS.length)];
     defaultOptions._styles = '';//getDefaultStyles();
 
     var settings = defaultOptions;
