@@ -8,8 +8,8 @@
 
 // HiFi Client mode
 if (typeof Script === 'object') {
-    Script.include(Script.resolvePath('extract-parameters.js'));
-    Script.include(Script.resolvePath('JSON-stringifiable.js'));
+    Script.include(Script.resolvePath('../../snippets/extract-parameters.js'));
+    Script.include(Script.resolvePath('../../snippets/JSON-stringifiable.js'));
     //Script.include(Script.resolvePath('../lib/WebWindowEx/signal.js'));
     Script.include('https://git.io/glm-js.min.js');
     Function.prototype.bind = Function.prototype.bind||function(){var fn=this,s=[].slice,a=s.call(arguments),o=a.shift();return function(){return fn.apply(o,a.concat(s.call(arguments)))}};
