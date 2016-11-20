@@ -92,8 +92,8 @@ if (typeof Script === 'object') {
                             }));
                         };
                         var pretty = _pretty.bind(_pretty, 'log');
+                        pretty.print = pretty;
                         methods.forEach(function(v) { pretty[v] = _pretty.bind(_pretty, v); });
-                        pretty.print = print;
                         return pretty;
                     })(),
                 }
@@ -127,7 +127,7 @@ if (typeof Script === 'object') {
         methods
             .reduce(function(con, v) { con[v] = mksender(v); return con; }, win.console);
         win.pretty = function() { win.log.apply(win, [].map.call(arguments, win.prettify.bind(win))); };
-        //win.pretty.print = win.pretty;
+        win.pretty.print = win.pretty;
         win.bound = win.print.bind(win);
         //win.bound.print = win.bound;
         methods.concat('print').forEach(function(v) {
