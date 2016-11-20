@@ -93,6 +93,7 @@ if (typeof Script === 'object') {
                         };
                         var pretty = _pretty.bind(_pretty, 'log');
                         methods.forEach(function(v) { pretty[v] = _pretty.bind(_pretty, v); });
+                        pretty.print = print;
                         return pretty;
                     })(),
                 }
@@ -175,7 +176,7 @@ if (typeof Script === 'object') {
                 // prevent segfaults once underlying window is deleted
                 var w = this.__proto__;
                 this.__proto__ = {};
-                w.deleteLater();
+                w.deleteLater && w.deleteLater();
             } catch(e) {
                 log(e);
             }
