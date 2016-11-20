@@ -391,11 +391,11 @@ if (typeof Script === 'object') {
 
     // if visible specified in URL start up the window
     if (params.visible) {
-        print('declaring direct console as', params['global']);
-        global[params['global']] = new PopupConsoleWindow();
+        print('declaring direct console as', settings['global']);
+        global[settings['global']] = new PopupConsoleWindow();
     } else if (params['global']) {
-        print('exporting remote console as', params['global']);
-        global[params['global']] = PopupConsoleWindow.proxy();
+        print('exporting remote console as', settings['global']);
+        global[settings['global']] = PopupConsoleWindow.proxy();
     }
     
 } else {
