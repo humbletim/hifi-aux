@@ -1,2 +1,2 @@
-// this is just to make explaining usage easier... could load popup-console-window.js directly with params too
+// this intermediary file just applies the visible=true parameter and otherwise loads popup-console-window.js
 Script.include(Script.resolvePath('').replace('popup-window.js','popup-console-window.js')+'?visible=true');
