@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+  <head>
+    <title>tim&apos;s popup console window</title>
+    <meta charset='utf-8' />
+    <script>
+        window.name = 'top';
+        if (window.qt && !window.EventBridge && !window.QWebChannel)
+        document.write('<SCR src="qrc:///qtwebchannel/qwebchannel.js"></SCR>'.replace(/SCR/g,'script'));
+    </script>
+    <script>
+    document.write(('<SCR src="popup-console-window.js?'+location.search+'"></SCR>').replace(/SCR/g,'script'));
+    </script>
+    <script>{
+        var highlightjs_base = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0';
+        document.write([
+            '<link id=font href="https://fonts.googleapis.com/css?family='+options.font+'" rel="stylesheet" />',
+            '<style id=fontstyle>* { font-family: "'+options.font+'"; }</style>',
+            '<link id=theme rel="stylesheet" href="'+(
+                highlightjs_base+'/styles/THEME.min.css'.replace('THEME', options.hljstheme)
+            )+'" />',
+            '<SCR src="'+highlightjs_base+'/highlight.min.js"></SCR>',
+        ].filter(Boolean).join('\n').replace(/SCR/g,'script'));
+      }</script>
+    <style id=defaultStyles>
+      /* FIXME: these CSS rules were extracted from live coding savedata
+           and need to be refactored into logical styles */
+        body { margin: 0 0 16px 0; background-color: black; color: white; }
+        body.inverted { background-color: white; color: black; }
+        body.bold { font-weight: bold; }
+        .row { line-height: 1em; margin:0 5px; border-bottom: solid 1px #101030; }
+        .inverted .row { border-bottom: solid 1px #f0f0c0; }
+        .level { font-size:1.1em;font-family: monospace; margin-right: 8px; }
+        .log .level { background-color: gray; }
+        .debug { color: #ccc; }
+        .debug .level { background-color: #333; color: #999; }
+        .info { background-color: rgba(128,128,200,.15); }
+        .info .level { background-color: blue; color: white; }
+        .warn .level { background-color: yellow; color: black; }
+        .error .level { background-color: red; color: white; }
+        #FONTS { display: none; -webkit-user-select: none; }
+        #FONTS.on { display: block; }
+        #fonttoggle  { background-color: white; color: black;  }
+        #fonttoggle.on { background-color: #333; color: white; }
+        #uicfg { position: fixed;  }
+        #uicfg button { font-family: monospace; font-size: 10px; border-radius:4px; border: solid 2px #333; }
+        #CLEAR:hover { font-weight:bold; background-color: #f00; }
+        #CLEAR { color:white; background-color: #b33;position: fixed; right: 0; top: 0; z-index:9; border-bottom-left-radius: 8px; border-left: solid 1px gray;border-top: solid 1px gray;}
+        * { -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important; -webkit-focus-ring-color: rgba(255, 255, 255, 0) !important; outline: none !important; }
+        #uicfg button[onclick*="bold"] { background-color: gray; text-transform: lowercase; }
+        .bold #uicfg button[onclick*="bold"] { background-color: white; text-transform: uppercase;}
+        #uicfg button[onclick*="invert"] { background-color: white; }
+        .inverted #uicfg button[onclick*="invert"] { background-color: black; }
+        #uicfg button.current { border-color: hotpink; }
+        pre.hljs code, pre.hljs, pre { padding: 0 !important; margin: 0 !important; }
+        pre.hljs code { margin:0  4px; background-color: #101030 !important; }
+        ::-webkit-scrollbar { width: 16px; height: 16px; }
+        ::-webkit-scrollbar-button { width: 0px; height: 0px;}
+        ::-webkit-scrollbar-thumb { background: #e1e1e1; }
+        ::-webkit-scrollbar-thumb:hover { background: #afa6fe; border-radius: 4px;}
+        ::-webkit-scrollbar-thumb:active { background: #fff; border: 1px dotted black;}
+        ::-webkit-scrollbar-track { background: #666666; border: 0px none #ffffff; border-radius: 0px;}
+        ::-webkit-scrollbar-track:hover { background: #666666;}
+        ::-webkit-scrollbar-track:active { border: 2px dotted #666; background: #333;}
+      ::-webkit-scrollbar-corner { background: transparent;}</style>
+    <style id=styles></style>
+    <link id=userstylesheet rel=stylesheet />
+    <style id=userstyles></style>
+  </head>
+  <body>
+    <button id=CLEAR onclick='onmsg(":clear:")'>CLEAR</button>
+    <div id=uicfg style=display:none>
+      <button onclick=invert(this)>&nbsp;</button>
+      <button onclick=bold(this)>b</button>
+      <button onclick=zoom(this)>+</button>
+      <button onclick=zoom(this)>-</button>
+      <button id=fonttoggle onclick='this.className=FONTS.className=["on","off"][+(FONTS.className==="on")];'>FONT</button>
+      <span id=FONTS></span>
+    </div>
+    <div id="output">...</div>
+    <div style="display:none" id="dummy"></div>
+    <script>{
+        window.onload = function() {
+            if (window.EventBridge)
+                popup_console_initialize_dom();
+            else {
+                console.info('manually creating EventBridge');
+                new QWebChannel(qt.webChannelTransport, function handled(channel) {
+                    EventBridge = channel.objects.eventBridgeWrapper.eventBridge;
+                    popup_console_initialize_dom();
+                });
+            }
+        };
+   }</script>
+  </body>
+</html>
+
