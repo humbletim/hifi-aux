@@ -27,16 +27,23 @@ function HighlightJSWindow(options) {
     options.code = options.code || 'no options.code specified to constructor...';
     options.zoom = options.zoom || .9;
     options.theme = options.theme || HighlightJSWindow.theme;
+    options.header = options.header || '';
     var css = HighlightJSWindow.css.replace('THEME', options.theme);
-    var win = new OverlayWebWindow(options);
+    var win = { __proto__: new OverlayWebWindow(options) };
     win.setURL(
-        'data:text/html;html,'+[
-            '<style>body { margin: 0; zoom: '+options.zoom+'; }</style>',
+        'data:text/html;html,<!--?--><html><body>'+[
+            options.header,
+            '<style>body { background-color: black; margin: 0; zoom: '+options.zoom+'; }</style>',
             '<pre><code class='+JSON.stringify(options.language)+'>'+options.code+'</code></pre>',
             '<link rel="stylesheet" href="'+css+'">',
             '<script src="'+HighlightJSWindow.js+'"></script>',
             '<script>hljs.initHighlightingOnLoad();</script>'
-        ].join(''));
+        ].join('')+'</body></html><!---->');
+    win.closed.connect(win, function onClosed() {
+        print('HighlightJSWindow.deletedLater', options.title);
+        win.__proto__.deleteLater && win.__proto__.deleteLater();
+        win.__proto__ = { visible: false, close: function() {}, deleteLater: function() {} };
+    });
     return win;
 }
 
@@ -45,7 +52,7 @@ try { module.exports = HighlightJSWindow; } catch(e) {}
 
 try { throw new Error('stack'); } catch(e) {
     var filename = e.fileName;
-    Script.include('extract-parameters.js');
+    Script.include('extract-parameters.js#hjs');
     Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
     try { ua.used(extractParameters(e.fileName)); } catch(e) { }
 }
