@@ -24,7 +24,7 @@ ProtocolVersions.fromRelease = function(rel) { return VERSIONS.byRelease[tag]; }
 ProtocolVersions.fromProtocolVersion = function(proto) { return VERSIONS.byProtocol[proto]; }
 
 // ### SNIP ###
-// machine generated mapping as of 2016.11.22
+// machine generated mapping as of 2016.11.23
 var VERSIONS = {
   "byRelease": {
     "Beta Release 10": {
@@ -110,6 +110,11 @@ var VERSIONS = {
       "release": "Beta Release 28",
       "tag": "RELEASE-5723",
       "protocolVersion": "cje11WLQUk/12oReimhsKg=="
+    },
+    "Beta Release 29": {
+      "release": "Beta Release 29",
+      "tag": "RELEASE-5731",
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
     }
   },
   "byProtocol": {
@@ -208,6 +213,17 @@ var VERSIONS = {
         "RELEASE-5723"
       ],
       "protocolVersion": "cje11WLQUk/12oReimhsKg=="
+    },
+    "j87v1Bkdmhn4Chza0gPrOw==": {
+      "release": "Beta Release 29",
+      "releases": [
+        "Beta Release 29"
+      ],
+      "tag": "RELEASE-5731",
+      "tags": [
+        "RELEASE-5731"
+      ],
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
     }
   },
   "byTag": {
@@ -294,6 +310,11 @@ var VERSIONS = {
       "tag": "RELEASE-5723",
       "release": "Beta Release 28",
       "proto": "cje11WLQUk/12oReimhsKg=="
+    },
+    "RELEASE-5731": {
+      "tag": "RELEASE-5731",
+      "release": "Beta Release 29",
+      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
     }
   }
 }
