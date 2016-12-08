@@ -10,7 +10,7 @@
 // --humbletim @ 2016.12.07
 
 var input = {
-    "name": "Vive to Standard",
+    "name": "Vive LeftApplicationMenu to Forward",
     "channels": [
         { "from": "Vive.LeftApplicationMenu", "to": "Actions.LONGITUDINAL_FORWARD" },
     ]
