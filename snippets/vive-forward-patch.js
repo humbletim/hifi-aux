@@ -1,11 +1,12 @@
 // vive-forward-patch.js
 //
 //   Example Vive controller patch script for @XaosPrincess
-//   With "Advanced Movement For Hand Controllers" enabled,
-//    her left forward touchpad had a mechanical defect.
+//
+//   Using "Advanced Movement For Hand Controllers,"
+//    her left forward touchpad had a mechanical defect that prevented walking.
 //
 //   This script lets the LeftApplicationMenu button move forward instead.
-//   (Right controller menu button unaffected)
+//   Menus can still be accessed using the right controller's menu button.
 //
 // --humbletim @ 2016.12.07
 
