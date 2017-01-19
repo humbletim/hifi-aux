@@ -24,7 +24,7 @@ ProtocolVersions.fromRelease = function(rel) { return VERSIONS.byRelease[tag]; }
 ProtocolVersions.fromProtocolVersion = function(proto) { return VERSIONS.byProtocol[proto]; }
 
 // ### SNIP ###
-// machine generated mapping as of 2016.11.23
+// machine generated mapping as of 2017.01.19
 var VERSIONS = {
   "byRelease": {
     "Beta Release 10": {
@@ -113,7 +113,22 @@ var VERSIONS = {
     },
     "Beta Release 29": {
       "release": "Beta Release 29",
-      "tag": "RELEASE-5731",
+      "tag": "RELEASE-5782",
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "Beta Release 30": {
+      "release": "Beta Release 30",
+      "tag": "RELEASE-5817",
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "Beta Release 31": {
+      "release": "Beta Release 31",
+      "tag": "RELEASE-5876",
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "Beta Release 32": {
+      "release": "Beta Release 32",
+      "tag": "RELEASE-5892",
       "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
     }
   },
@@ -215,13 +230,19 @@ var VERSIONS = {
       "protocolVersion": "cje11WLQUk/12oReimhsKg=="
     },
     "j87v1Bkdmhn4Chza0gPrOw==": {
-      "release": "Beta Release 29",
+      "release": "Beta Release 32",
       "releases": [
-        "Beta Release 29"
+        "Beta Release 29",
+        "Beta Release 30",
+        "Beta Release 31",
+        "Beta Release 32"
       ],
-      "tag": "RELEASE-5731",
+      "tag": "RELEASE-5892",
       "tags": [
-        "RELEASE-5731"
+        "RELEASE-5782",
+        "RELEASE-5817",
+        "RELEASE-5876",
+        "RELEASE-5892"
       ],
       "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
     }
@@ -311,9 +332,24 @@ var VERSIONS = {
       "release": "Beta Release 28",
       "proto": "cje11WLQUk/12oReimhsKg=="
     },
-    "RELEASE-5731": {
-      "tag": "RELEASE-5731",
+    "RELEASE-5782": {
+      "tag": "RELEASE-5782",
       "release": "Beta Release 29",
+      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "RELEASE-5817": {
+      "tag": "RELEASE-5817",
+      "release": "Beta Release 30",
+      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "RELEASE-5876": {
+      "tag": "RELEASE-5876",
+      "release": "Beta Release 31",
+      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "RELEASE-5892": {
+      "tag": "RELEASE-5892",
+      "release": "Beta Release 32",
       "proto": "j87v1Bkdmhn4Chza0gPrOw=="
     }
   }
