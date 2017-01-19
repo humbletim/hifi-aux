@@ -22,7 +22,7 @@ var window = new OverlayWindow({
     source: qmlURL + cache_buster,
     width: 480,
     height: 320,
-    title: 'SnapshotRezzer v0.0.2'
+    title: 'SnapshotRezzer v0.0.3'
 });
 
 window.fromQml.connect(function(event) {

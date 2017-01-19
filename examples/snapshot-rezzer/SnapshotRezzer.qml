@@ -79,7 +79,7 @@ FocusScope {
         anchors.bottomMargin: -24
         property var styleCB: Component { id: styleCB; CheckBoxStyle { label: Text { text: control.text; color: 'white' } } }
         CheckBox { id: gravity; checked: true; text: 'gravity';  style: styleCB }
-        CheckBox { id: createPlaceholder; checked: true; text: 'always attempt to create photo frame'; style: styleCB }
+        CheckBox { id: createPlaceholder; checked: true; text: 'create clientOnly frame (if no rez rights)'; style: styleCB }
     }
     Button {
         z:1
@@ -91,13 +91,17 @@ FocusScope {
         visible: true
         enabled: true
         focus: true
-        property var placeholderText: '(snapshot detection enabled)\nyou can hit (x) or ESC to hide this dialog'
-        property var permsText: 'click to generate a photo frame\n(note: requires canWriteToAssetServer && canRez*Entities)'
+        property var placeholderText: [
+            '(snapshot detection enabled)',
+            'you can hit (x) or ESC to hide this dialog',
+            'and redisplay with last snapshot under the Display menu'
+        ].join('\n')
+        property var permsText: 'click to generate a photo frame\n(note: requires canWriteAssets && canRez*Entities)'
         text: placeholderText
         onClicked: {
             console.info('click!', filename, mapping, (bg.source+'').substr(0,32));
 
-            if (!Entities.serversExist() || (!Entities.canRezTmp() && !Entities.canRez())) {
+            if (!filename || !Entities.serversExist() || (!Entities.canRezTmp() && !Entities.canRez())) {
                 if (settings.createPlaceholder) {
                     return sendToScript({
                         type: 'addFrame',
@@ -212,11 +216,46 @@ FocusScope {
         onFocusChanged: { console.info('focus', window.focus); if (!focus && button.enabled) show(false) }
     }
 
+    // hook into MenuInterface
+    property var menu
+    property var menuname: 'SnapshotRezzer'
+    Binding { target: root; property: 'menu'; value: MenuInterface }
+    Connections {
+        target: root
+        onMenuChanged: {
+            //console.info('MENU', menu);
+            menu.addMenuItem("Display", menuname);
+        }
+        Component.onDestruction: {
+            menu.removeMenuItem("Display", menuname);
+        }
+    }
+    Connections {
+        target: menu || null
+        onMenuItemEvent: menuItem === menuname && onSnapshotTaken()
+    }
+
     function show(b) { window.shown = b; }
 
+    /*
     Connections {
         target: Window
-        onSnapshotTaken: {
+        onSnapshotTaken: onSnapshotTaken
+    }
+    */
+
+    Component.onCompleted: {
+        Window.onSnapshotTaken.connect(onSnapshotTaken);
+        if (Settings.getValue('SnapshotRezzer-lastSnapshot')) {
+            button.text = button.permsText;
+            onSnapshotTaken();
+        }
+    }
+    Component.onDestruction: Window.onSnapshotTaken.disconnect(onSnapshotTaken)
+    function onSnapshotTaken(path) {
+        {
+            path = path || Settings.getValue('SnapshotRezzer-lastSnapshot');
+            Settings.setValue('SnapshotRezzer-lastSnapshot', path);
             console.info('SNAPSHOT DETECTED', path, button.text);
             filename = path;
             bg.source = 'file://'+filename;
@@ -227,13 +266,12 @@ FocusScope {
             log('<pre>current perms: '+JSON.stringify({
                 canRez: Entities.canRez(),
                 canRezTmp: Entities.canRezTmp(),
-                canWriteToAssetServer: '(permissions check unavailable)'
+                canWriteAssets: Entities.canWriteAssets(),
             },0,2).trim().replace(/\n/g,'<br />')+'</pre>');
             log('image: '+filename);
             log('mapping: '+mapping);
             button.enabled = true
             button.text = button.permsText;
-
             button.forceActiveFocus()
         }
     }

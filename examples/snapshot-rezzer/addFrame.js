@@ -21,7 +21,8 @@ function _addFrame(event) {
             var settings = event.settings;
             var frame = Entities.addEntity({
                 type: 'Model',
-                name: event.name || 'SnapshotShare',
+                name: event.name || 'SnapshotRezzer-' + MyAvatar.sessionDisplayName,
+                description: event.description || 'Snapshot rezzed by ' + MyAvatar.sessionDisplayName,
                 dimensions: Vec3.multiply(.1, Vec3.ONE),
                 position: Vec3.sum(Vec3.multiply(.5,Quat.getUp(Origin.orientation)),Vec3.sum(Origin.position, Vec3.multiply(Quat.getFront(Origin.orientation), 3))),
                 rotation: MyAvatar.orientation,
@@ -32,7 +33,7 @@ function _addFrame(event) {
                 collisionsWillMove: true,
                 collisionless: false,
                 density: settings.gravity ? 10000 : 1000,
-                restitution: .75,
+                restitution: .45,
                 friction: .8,
                 //registrationPoint: Vec3.sum(Vec3.multiply(Vec3.UP,-.125/2), Vec3.HALF),
                 registrationPoint: Vec3.multiply(.5,Vec3.sum(Vec3.multiply(Vec3.UP,-.5), Vec3.ONE)),
