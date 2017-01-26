@@ -24,7 +24,7 @@ ProtocolVersions.fromRelease = function(rel) { return VERSIONS.byRelease[tag]; }
 ProtocolVersions.fromProtocolVersion = function(proto) { return VERSIONS.byProtocol[proto]; }
 
 // ### SNIP ###
-// machine generated mapping as of 2017.01.19
+// machine generated mapping as of 2017.01.26
 var VERSIONS = {
   "byRelease": {
     "Beta Release 10": {
@@ -119,17 +119,17 @@ var VERSIONS = {
     "Beta Release 30": {
       "release": "Beta Release 30",
       "tag": "RELEASE-5817",
-      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+      "protocolVersion": "Qql3Ea+ydE5Y2mNEmu1QGQ=="
     },
     "Beta Release 31": {
       "release": "Beta Release 31",
       "tag": "RELEASE-5876",
-      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+      "protocolVersion": "cJNrQZ4urWA2426aytay+A=="
     },
     "Beta Release 32": {
       "release": "Beta Release 32",
       "tag": "RELEASE-5892",
-      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+      "protocolVersion": "cJNrQZ4urWA2426aytay+A=="
     }
   },
   "byProtocol": {
@@ -230,21 +230,39 @@ var VERSIONS = {
       "protocolVersion": "cje11WLQUk/12oReimhsKg=="
     },
     "j87v1Bkdmhn4Chza0gPrOw==": {
+      "release": "Beta Release 29",
+      "releases": [
+        "Beta Release 29"
+      ],
+      "tag": "RELEASE-5782",
+      "tags": [
+        "RELEASE-5782"
+      ],
+      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+    },
+    "Qql3Ea+ydE5Y2mNEmu1QGQ==": {
+      "release": "Beta Release 30",
+      "releases": [
+        "Beta Release 30"
+      ],
+      "tag": "RELEASE-5817",
+      "tags": [
+        "RELEASE-5817"
+      ],
+      "protocolVersion": "Qql3Ea+ydE5Y2mNEmu1QGQ=="
+    },
+    "cJNrQZ4urWA2426aytay+A==": {
       "release": "Beta Release 32",
       "releases": [
-        "Beta Release 29",
-        "Beta Release 30",
         "Beta Release 31",
         "Beta Release 32"
       ],
       "tag": "RELEASE-5892",
       "tags": [
-        "RELEASE-5782",
-        "RELEASE-5817",
         "RELEASE-5876",
         "RELEASE-5892"
       ],
-      "protocolVersion": "j87v1Bkdmhn4Chza0gPrOw=="
+      "protocolVersion": "cJNrQZ4urWA2426aytay+A=="
     }
   },
   "byTag": {
@@ -340,17 +358,17 @@ var VERSIONS = {
     "RELEASE-5817": {
       "tag": "RELEASE-5817",
       "release": "Beta Release 30",
-      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+      "proto": "Qql3Ea+ydE5Y2mNEmu1QGQ=="
     },
     "RELEASE-5876": {
       "tag": "RELEASE-5876",
       "release": "Beta Release 31",
-      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+      "proto": "cJNrQZ4urWA2426aytay+A=="
     },
     "RELEASE-5892": {
       "tag": "RELEASE-5892",
       "release": "Beta Release 32",
-      "proto": "j87v1Bkdmhn4Chza0gPrOw=="
+      "proto": "cJNrQZ4urWA2426aytay+A=="
     }
   }
 }
