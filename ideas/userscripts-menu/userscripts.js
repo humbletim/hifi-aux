@@ -13,7 +13,7 @@ var basename = filename.split(/[?#]/)[0].split('/').pop();
 log.prefix = '['+basename+'] ';
 log(version);
 
-var USER_SCRIPTS_MENU = 'Tools > User Scripts';
+var USER_SCRIPTS_MENU = 'User Scripts';
 var SAMPLE_LOCALSTORAGE = [ "http://google.com # Google" ];
 var LOCALSTORAGE_HTML = Settings.getValue('localStorage.html');
 var LOCALSTORAGE_KEY = 'userscripts';
