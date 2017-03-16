@@ -62,8 +62,12 @@ Item {
     }
     Connections {
         target: bridge
-        // forward incoming HTML messages to the Script side
-        onWebEventReceived: sendToScript({ origin: 'web', data: message, target: 'script', tstamp: +new Date })
+        onWebEventReceived: {
+            // if (message.slice(0, 17) === "CLARA.IO DOWNLOAD")
+            //     return ApplicationInterface.addAssetToWorldFromURL(event.slice(18));
+            // forward incoming HTML messages to the Script side
+            sendToScript({ origin: 'web', data: message, target: 'script', tstamp: +new Date });
+        }
     }
 
     // QML -> Script
@@ -77,6 +81,8 @@ Item {
                     return debug && log('fromScript', event.property, 'ignoring undefined value');
                 if (event.property === 'url' && appwin.webview)
                     return appwin.webview.url = event.value;
+                else if (event.property === 'scriptUrl' && appwin.webview)
+                    return appwin.webview.userScriptUrl = event.value;
                 else if (event.property in appwin)
                     return appwin[event.property] = event.value;
                 else
@@ -152,6 +158,7 @@ Item {
             WebEngineView {
                 id: webview
                 url: "about:blank"
+                property string userScriptUrl: ""
                 anchors.fill: parent
                 focus: true
                 webChannel.registeredObjects: [bridge]
@@ -219,8 +226,23 @@ Item {
                         sourceCode: "if(0)console.warn('disabling context menu to workaround QML Popup issue');window.addEventListener('contextmenu', function(evt) { evt.preventDefault(); });"
                         injectionPoint: WebEngineScript.DocumentReady
                         worldId: WebEngineScript.MainWorld
+                    },
+                    // Detect when may want to raise and lower keyboard.
+                    WebEngineScript {
+                        id: raiseAndLowerKeyboard
+                        injectionPoint: WebEngineScript.Deferred
+                        sourceUrl: resourceDirectoryUrl + "/html/raiseAndLowerKeyboard.js"
+                        worldId: WebEngineScript.MainWorld
+                    },
+                    // User script.
+                    WebEngineScript {
+                        id: userScript
+                        sourceUrl: webview.userScriptUrl
+                        injectionPoint: WebEngineScript.DocumentReady  // DOM ready but page load may not be finished.
+                        worldId: WebEngineScript.MainWorld
                     }
                 ]
+
                 Component.onCompleted: {
                     sendToScript({ target: 'WebWindowEx', origin: 'qml', data: { objectName: fauxroot.objectName }})
                     $emit('$ready', 'webview');
@@ -228,12 +250,11 @@ Item {
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
 
                 onLoadingChanged: {
-                    //console.info('onLoadingChanged', loadRequest.url);
                     // Required to support clicking on "hifi://" links
                     if (WebEngineView.LoadStartedStatus == loadRequest.status) {
                         var url = loadRequest.url.toString();
-                        //log('testing canHandleUrl', url);
-                        if (/^hifi:/.test(url) && urlHandler.canHandleUrl(url)) {
+                        log('testing canHandleUrl', url);
+                        if (/^hifi:|mpassets/.test(url) || urlHandler.canHandleUrl(url)) {
                             log('calling handleUrl!', url)
                             if (urlHandler.handleUrl(url)) {
                                 webview.stop();
