@@ -36,10 +36,15 @@ if (debug)
 else {
     document.write('redirecting...');
     setTimeout(function() {
-        try { if (!/highfidelity/i.test(navigator.userAgent)) window.location.replace(url); } catch(e) {
+        try {
+            if (!/highfidelity/i.test(navigator.userAgent))
+                window.location.replace(url);
+            else
+                location.href = url;
+        } catch(e) {
             location.href = url;
         }
-    }, 1000);
+    }, 500);
 }
 
 </script>
