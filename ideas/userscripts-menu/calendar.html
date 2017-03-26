@@ -2,7 +2,7 @@
 <html>
     <head>
       <title>HiFi Event Calendar Time Zonifier</title>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.4/jstz.min.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jstimezonedetect/1.0.6/jstz.min.js"></script>
     </head>
     <body bgcolor='#ddd'>
       <pre id=output>calculating timezone...</pre>
@@ -36,7 +36,7 @@ if (debug)
 else {
     document.write('redirecting...');
     setTimeout(function() {
-        try { window.location.replace(url); } catch(e) {
+        try { if (!/highfidelity/i.test(navigator.userAgent)) window.location.replace(url); } catch(e) {
             location.href = url;
         }
     }, 1000);
