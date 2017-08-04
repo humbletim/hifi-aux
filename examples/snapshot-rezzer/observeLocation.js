@@ -1,5 +1,6 @@
 observeLocation = _observe; // export
 observeLocation.$Thread = $Thread;
+observeLocation.decodeURL = decodeURL;
 function _observe(location) {
     var ctx = _observe._observing;
 
@@ -151,3 +152,5 @@ function decodeURL(hifiLocation) {
         ['x','y','z','w'].forEach(function(k,i) { arr[k] = arr[i]; }); return arr;
     }
 }
+
+try { module.exports = _observe; } catch(e) {}

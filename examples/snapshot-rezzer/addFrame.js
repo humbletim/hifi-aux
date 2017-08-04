@@ -51,7 +51,7 @@ function _addFrame(event) {
                         }
                     };
                 }+')',
-            }, Entities.canRezTmp() ? false : true /*clientOnly*/);
+            }, (Entities.canRez() || Entities.canRezTmp()) ? false : true /*clientOnly*/);
 
             // workaround: .naturalDimensions isn't always available the first time ModelCache reports FINISHED state
             ready('recaching:'+modelURL, ModelCache.prefetch(modelURL), function(model) {
@@ -75,8 +75,8 @@ function _addFrame(event) {
                         print('reorienting', frame, JSON.stringify(Quat.safeEulerAngles(MyAvatar.orientation)));
                         Entities.editEntity(frame, { rotation: MyAvatar.orientation });
                     }
-                    Script.addEventHandler(frame, 'clickDownOnEntity', reorient);
-                    Script.scriptEnding.connect(function() { Script.removeEventHandler(frame, 'clickDownOnEntity', reorient); });
+                    //Script.addEventHandler(frame, 'clickDownOnEntity', reorient);
+                    //Script.scriptEnding.connect(function() { Script.removeEventHandler(frame, 'clickDownOnEntity', reorient); });
 
                     // notify our OverlayWindow QML that we were succsesful
                     window.sendToQml({ type: 'frameAdded', uuid: frame });
