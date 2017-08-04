@@ -249,11 +249,12 @@ Item {
                 }
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
 
+                onUrlChanged: $emit('$url', url)
                 onLoadingChanged: {
                     // Required to support clicking on "hifi://" links
                     if (WebEngineView.LoadStartedStatus == loadRequest.status) {
                         var url = loadRequest.url.toString();
-                        log('testing canHandleUrl', url);
+                        log('testing canHandleUrl', url.substr(0,60)+'...');
                         if (/^hifi:|mpassets/.test(url) || urlHandler.canHandleUrl(url)) {
                             log('calling handleUrl!', url)
                             if (urlHandler.handleUrl(url)) {
