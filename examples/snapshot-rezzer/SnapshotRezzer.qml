@@ -245,14 +245,14 @@ FocusScope {
     */
 
     Component.onCompleted: {
-        Window.onSnapshotTaken.connect(onSnapshotTaken);
+        Window.stillSnapshotTaken.connect(onSnapshotTaken);
         if (Settings.getValue('SnapshotRezzer-lastSnapshot')) {
             button.text = button.permsText;
             onSnapshotTaken();
         }
     }
-    Component.onDestruction: Window.onSnapshotTaken.disconnect(onSnapshotTaken)
-    function onSnapshotTaken(path) {
+    Component.onDestruction: Window.stillSnapshotTaken.disconnect(onSnapshotTaken)
+    function onSnapshotTaken(path, notify) {
         {
             path = path || Settings.getValue('SnapshotRezzer-lastSnapshot');
             Settings.setValue('SnapshotRezzer-lastSnapshot', path);
