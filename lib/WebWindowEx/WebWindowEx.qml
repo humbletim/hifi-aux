@@ -50,7 +50,7 @@ Item {
         id: bridge
         property var eventBridge: bridge
         objectName: 'bridge'
-        WebChannel.id: "eventBridgeWrapper"
+        WebChannel.id: "eventBridge"
 
         // (Script -> Web)
         signal scriptEventReceived(var message)
@@ -66,6 +66,9 @@ Item {
             // if (message.slice(0, 17) === "CLARA.IO DOWNLOAD")
             //     return ApplicationInterface.addAssetToWorldFromURL(event.slice(18));
             // forward incoming HTML messages to the Script side
+            if (message === '_RAISE_KEYBOARD' || message === '_LOWER_KEYBOARD') {
+                return log('ignoring onWebEventReceived message', message);
+            }
             sendToScript({ origin: 'web', data: message, target: 'script', tstamp: +new Date });
         }
     }
@@ -162,7 +165,9 @@ Item {
                 anchors.fill: parent
                 focus: true
                 webChannel.registeredObjects: [bridge]
-                profile.httpUserAgent:  "Mozilla/5.0 Chrome (HighFidelityInterface; WebWindowEx)"
+                profile: HFWebEngineProfile
+                //HFTabletWebEngineProfile
+                //profile.httpUserAgent:  "Mozilla/5.0 Chrome (HighFidelityInterface; WebWindowEx)"
                 function getqwebchannel_src(url) {
                     url = url || "qrc:///qtwebchannel/qwebchannel.js";
                     var xhr = new XMLHttpRequest();
@@ -183,7 +188,7 @@ Item {
                         sourceCode: [
                             "//@ sourceURL=WebWindowEx.qml:165+\n",
                             "var WebChannel, EventBridge, QWebChannel, openEventBridge;",
-                            "function __WebWindowExInit__() {console.info('__WebWindowExInit__' + location);Object.defineProperty(window, 'EventBridge',{ value: { ",
+                            "function __WebWindowExInit__() {console.info('__WebWindowExInit__ ' + location);Object.defineProperty(window, 'EventBridge',{ value: { ",
                             "  emitWebEvent: function(msg) { return this.__proto__.emitWebEvent(msg); },",
                             "  __proto__: { ",
                             "     emits: [], connects: [], disconnects: [],",
@@ -202,13 +207,13 @@ Item {
                     //     sourceCode: [
                             "//@ sourceURL=WebWindowEx.qml:189+\n",
                             "__WebWindowExInit__.QWebChannel = QWebChannel; QWebChannel = null;",
-                            "Object.defineProperty(window, 'openEventBridge', { value: function(cb) { console.info('openEventBridge noop');if (EventBridge.channel)cb(EventBridge);else __WebWindowExInit__.bbb = cb; }});",
-                            "Object.defineProperty(window, 'QWebChannel', { value: function(a,cb) { console.info('~~QWebChannel noop'+[typeof WebChannel,typeof EventBridge.channel,typeof window.WebChannel]);if(EventBridge.channel)cb(EventBridge.channel);else __WebWindowExInit__.qqq=cb;; }});",
+                            "Object.defineProperty(window, 'openEventBridge', { value: function(cb) { console.info('=====openEventBridge noop');if (EventBridge.channel)cb(EventBridge);else {console.info('scheduling via bbb'); __WebWindowExInit__.bbb = cb;} }});",
+                            "Object.defineProperty(window, 'QWebChannel', { value: function(a,cb) { console.info('~~~~~~QWebChannel noop'+[typeof WebChannel,typeof EventBridge.channel,typeof window.WebChannel]);if(EventBridge.channel)console.info(Object.keys(EventBridge.channel.objects)),cb(WebChannel=EventBridge.channel);else {console.info('scheduling via qqq');  __WebWindowExInit__.qqq=cb;}; }});",
                             "new __WebWindowExInit__.QWebChannel(qt.webChannelTransport, function (channel) { ",
                             "Object.defineProperty(window, 'WebChannel', { value: EventBridge.channel = channel }); ",
                             " var old = EventBridge.__proto__; ",
-                            "console.info('QWebChannel provisioned; queue:'+[old.connects&&old.connects.length,old.disconnects&&old.disconnects.length,old.emits&&old.emits.length] + location);",
-                            " EventBridge.__proto__ = channel.objects.eventBridgeWrapper.eventBridge; " +
+                            "console.info('QWebChannel provisioned; queue:'+[old.connects&&old.connects.length,old.disconnects&&old.disconnects.length,old.emits&&old.emits.length] + ' '+location);",
+                            " EventBridge.__proto__ = channel.objects.eventBridge||channel.objects.eventBridgeWrapper.eventBridge; " +
                                 "  (old.connects||[]).forEach(function(f) { EventBridge.scriptEventReceived.connect(f); });",
                             "  (old.disconnects||[]).forEach(function(f) { EventBridge.scriptEventReceived.disconnect(f); });",
                             "  (old.emits||[]).forEach(function(msg) { EventBridge.emitWebEvent(msg); });",
@@ -246,6 +251,7 @@ Item {
                 Component.onCompleted: {
                     sendToScript({ target: 'WebWindowEx', origin: 'qml', data: { objectName: fauxroot.objectName }})
                     $emit('$ready', 'webview');
+                    log('...Component.onCompleted', profile.httpUserAgent);
                 }
                 onJavaScriptConsoleMessage: log((sourceID+'').split('/').pop() + ":" + lineNumber + " " +  message)
 
