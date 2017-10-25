@@ -20,7 +20,7 @@ if (typeof Script === 'object') {
         Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
         try { ua.used(params); } catch(e) { log(e); }
     }
-    
+
     var _FONTS = ["Indie Flower", "Coming Soon", "Neucha", "Bad Script", "Nothing You Could Do", "Electrolize","Orbitron","Russo One","Allerta Stencil", "Architects Daughter", "Space Mono", "Inconsolata", "Share Tech Mono", "Nova Mono", "Open Sans", "Roboto", "Lato", "PT Sans", "Source Sans Pro", "Exo", "Exo 2", "Ubuntu", "Istok Web", "Nobile"];
 
     if (params.font)
@@ -28,14 +28,17 @@ if (typeof Script === 'object') {
 
     var defaultOptions = {
         title: 'popup console logger',
+        shortcutKey: 'Ctrl+Shift+I',
         visible: true,
         width: glm.clamp(Overlays.width()*.8, 320, 800),
         height: glm.clamp(Overlays.height()*.8, 240, 600),
         hljstheme: 'ir-black',
         zoom: 1,
         styles: '',
-        autoshow: true,
+        autoshow: false,
+        destroyOnClose: 'maybe',
         channel: 'console',
+        allowRemote: false,
         global: 'console',
         invert: false,
         uicfg: false,
@@ -45,6 +48,10 @@ if (typeof Script === 'object') {
     defaultOptions._styles = '';//getDefaultStyles();
 
     var settings = defaultOptions;
+    var localSettings = Settings.getValue('popup-console', {});
+    for(var p in localSettings) {
+        settings[p] = localSettings[p];
+    }
     for(var p in params)
         settings[p] = params[p];
 
@@ -53,7 +60,7 @@ if (typeof Script === 'object') {
     global.PopupConsoleWindow = PopupConsoleWindow;
     try { module.exports = PopupConsoleWindow; } catch(e) {}
 
-    var methods = 'clear,log,debug,info,warn,error'.split(',');
+    var methods = 'clear,log,debug,info,warn,error,chat'.split(',');
 
     PopupConsoleWindow.print = PopupConsoleWindow._print;
     PopupConsoleWindow.proxy = function(channel, print) {
@@ -99,7 +106,7 @@ if (typeof Script === 'object') {
                 }
             );
     };
-    
+
     function PopupConsoleWindow(_options) {
         _options = _options || {};
         _options.uicfg = 'uicfg' in _options ? _options.uicfg : 'uicfg' in params ? params.uicfg : defaultOptions.uicfg;
@@ -124,6 +131,8 @@ if (typeof Script === 'object') {
 
         var mksender = function mksender(n) { return win.send.bind(win, ':'+n+':'); }
         win.print = win.console.print = mksender('text');
+        win.write = win.console.write = mksender('write');
+        win.chat = win.console.chat = mksender('chat');
         methods
             .reduce(function(con, v) { con[v] = mksender(v); return con; }, win.console);
         win.pretty = function() { win.log.apply(win, [].map.call(arguments, win.prettify.bind(win))); };
@@ -141,7 +150,7 @@ if (typeof Script === 'object') {
 
         win.webEventReceived.connect(win, 'onWebEventReceived');
 
-        var cleanups = win.cleanups = [];
+        var cleanups = win.cleanups = [ ];
         Script.scriptEnding.connect(win, 'cleanup');
         {
             Messages.subscribe(options.channel);
@@ -160,6 +169,25 @@ if (typeof Script === 'object') {
         win.visibleChanged && win.visibleChanged.connect(win, 'onVisibleChanged');
         win.closed && win.closed.connect(win, 'onClosed');
 
+        var menuOptions = win.menuOptions = {
+            menuName: 'View',
+            menuItemName: 'Popup Console ('+settings.channel+')',
+            shortcutKey: settings.shortcutKey,
+            isCheckable: true,
+            isChecked: win.visible,
+        };
+        Menu.addMenuItem(menuOptions);
+        win.cleanups.push(function() {
+            Menu.removeMenuItem(menuOptions.menuName, menuOptions.menuItemName);
+            Menu.menuItemEvent.disconnect(onMenuItemEvent);
+        });
+        Menu.menuItemEvent.connect(onMenuItemEvent);
+        function onMenuItemEvent(event) {
+            if (event === menuOptions.menuItemName) {
+                win.visible = Menu.isOptionChecked(menuOptions.menuItemName);
+            }
+        }
+
         return win;
     }//PopupConsoleWindow
 
@@ -167,8 +195,9 @@ if (typeof Script === 'object') {
         send_queue: null,
         FONTS: _FONTS,
         cleanup: function() {
+            var self = this;
             this.cleanups.splice(0,this.cleanups.length)
-                .forEach(function(f) { try { f(); } catch(e) { log('cleanup error:',e); } });
+                .forEach(function(f) { try { f.call(self); } catch(e) { log('cleanup error:',e); } });
         },
         destroy: function() {
             this.cleanup();
@@ -180,10 +209,13 @@ if (typeof Script === 'object') {
             } catch(e) {
                 log(e);
             }
-            log('destroyed');
+            if (params.$url.basename === 'popup-console-window.js' ||
+                params.$url.basename === 'popup-window.js') {
+                Script.stop();
+            }
         },
         onMessageReceived: function(c,m,s,l) {
-            if (!l || c !== this.options.channel) return;
+            if (c !== this.options.channel || (!l && !this.options.allowRemote)) return;
             if (~m.indexOf('TCOBO:')) {
                 if (this.options.TCOBO && this.options.TCOBO !== Settings.getValue('TCOBO/'+this.options.channel, this.options.TCOBO)) {
                     log(m, 'terminating in favor of new '+this.options.channel+' instance');
@@ -194,12 +226,20 @@ if (typeof Script === 'object') {
             }
             try { var msg = JSON.parse(m); } catch(e) {}
             if (Array.isArray(msg && msg.args) && msg.level in this.console) {
-                if (msg.pretty)
+                if (msg.pretty) {
                     this.pretty[msg.level].apply(this.pretty, msg.args);
-                else
+                } else {
                     this.console[msg.level].apply(this.console, msg.args);
-            } else
+                }
+            } else if (msg && msg.send && Array.isArray(msg.args)) {
+                this.send.apply(this, msg.args);
+            } else if (msg && msg.visible) {
+                var v = this.visible;
+                this.visible = !!msg.visible;
+                !v && this.visible && this.raise();
+            } else {
                 this.print('(msg)', m);
+            }
         },
         test: function() {
             this.print('check check');
@@ -210,7 +250,7 @@ if (typeof Script === 'object') {
             //this.setStyleSheet([ '.log { font-family: "Comic Sans MS", Fantasy; }', 'body { background-color: #333; }']);
             //this.setStyleSheet('https//rawgit.com/...../.css');
             //this.setStyleSheet(null);
-            
+
             Script.setTimeout(this.setStyleSheet.bind(this, null), 1500);
             this.pretty('MyAvatar.position', MyAvatar.position);
             this.pretty('MyAvatar.orientation', MyAvatar.orientation);
@@ -232,6 +272,38 @@ if (typeof Script === 'object') {
         },
         onWebEventReceived: function(msg) {
             log('onWebEventReceived', msg, (this.send_queue && this.send_queue.length)+'');
+            if (/^:copy:/.test(msg)) {
+                var str = msg.substr(':copy:'.length);
+                Window.copyToClipboard(str);
+                console.debug('copied ' + JSON.stringify(str) + ' to clipboard');
+                this.send(':unselect:');
+                return;
+            } else if (msg ===  'terminate') {
+                this.destroy();
+                return;
+            }
+            try {
+                var message = JSON.parse(msg);
+                if (/^hifi:/.test(message.url) && Window.confirm('goto ' + message.url + '?')) {
+                    Window.location = message.url;
+                } else if (/^javascript:/.test(message.url) && Window.confirm('execute ' + message.url + '?')) {
+                    if (/[A-Z]/.test(message.url) && !Window.confirm('... are you sure?')) {
+                        return;
+                    } else {
+                        var code = message.url.replace(/^javascript:/,'');
+                        this.console.warn('executing javascript code:' + code);
+                        try { this.console.info('result: ' + Script.evaluate(code, 'javascript:')); } catch(e) { this.console.error('result: ' + e); }
+                    }
+                    //Window.location = message.url;
+                } else { //if (/[.](json|js|fst|fbx|gz|zip|obj)/.test(message.url)) {
+                    var w = OverlayWebWindow({ width: Controller.getViewportDimensions().x*.8, height: 32, title: 'open url' });
+                    function cleanup() { w && w.deleteLater(); w = null; }
+                    w.closed.connect(cleanup);
+                    Script.scriptEnding.connect(cleanup);
+                    w.setURL(message.url);
+                }
+            } catch(e) {}
+
             var options = this.options;
             if (msg === 'ready') {
                 var send_queue = this.send_queue;
@@ -256,10 +328,10 @@ if (typeof Script === 'object') {
                     this.test();
                     this.pretty(options);
                 }
-                this.pretty('(params)', params);
-
+                this.pretty.log('(settings)', { params: params, localSettings: localSettings, });
+                this.pretty.log('(levels)', Object.keys(this.console).join('|'));
                 if (send_queue) {
-                    this.print('processing send_queue #'+send_queue.length);
+                    this.print('..processing send_queue #'+send_queue.length);
                     send_queue.forEach(function(args) {
                         this.send.apply(this, args);
                     }.bind(this));
@@ -309,14 +381,14 @@ if (typeof Script === 'object') {
                 }
                 glmize.depth--;
                 return o;
-            }                
+            }
             try {
                 o = glmize(o, 1, 3);
                 //p = p ? p+' = ' : '';
                 if (o && typeof o === 'object')
                     o = this.stringify(o);
             } catch(e) {}
-            
+
             return o;
         },
         console: {
@@ -357,6 +429,8 @@ if (typeof Script === 'object') {
                     return ignore('this.visible==='+this.visible);
                 if (this.options.autoshow)
                     return ignore('autoshow==='+this.options.autoshow + ' (window will be reshown with any next console log entry)');
+                if (this.options.destroyOnClose === false)
+                    return ignore('destroyOnClose === '+this.options.destroyOnClose);
                 try {
                     var roving = Toolbars.getToolbar('com.highfidelity.interface.toolbar.system').readProperty('width') < 100;
                     if (roving)
@@ -381,6 +455,7 @@ if (typeof Script === 'object') {
             } finally {
                 maybeClosed.busy = false;
             }
+            Menu.setIsOptionChecked(this.menuOptions.menuItemName, this.visible);
         },
         onClosed: function onClosed() {
             this.$onclosed = +new Date;
@@ -393,12 +468,13 @@ if (typeof Script === 'object') {
     // if visible specified in URL start up the window
     if (params.visible) {
         print('declaring direct console as', settings['global']);
-        global[settings['global']] = new PopupConsoleWindow();
+        var popup = global[settings['global']] = new PopupConsoleWindow();
+        popup.cleanups.push(popup.destroy.bind(popup));
     } else if (params['global']) {
         print('exporting remote console as', settings['global']);
         global[settings['global']] = PopupConsoleWindow.proxy();
     }
-    
+
 } else {
     // HTMLmode
     var log = function log() { console.log('popup-console-window |' + [].join.call(arguments, ' ')); };
@@ -428,8 +504,14 @@ if (typeof Script === 'object') {
             window.EventBridge.scriptEventReceived.connect(onmsg=function(msg) {
                 var mode=msg.split(":",2)[1],str=mode&&msg.substr(mode.length+2).trim();
                 //console.info(['scriptEventReceived',msg,mode,str.replace(/\n/g,'\\n')].join('|'));
-                if(mode === "clear")
+                if(mode === "clear") {
                     output.innerText="";
+                    cancelAlt();
+                } else if (mode === 'unselect') {
+                    window.getSelection().empty();
+                    checkselection();
+                } else if(mode === "copy")
+                    EventBridge.emitWebEvent(msg);
                 else if (/^(?:log|debug|info|warn|error)/.test(mode)) {
                     if (mode === 'debug') {
                         str.replace(/^(invert(?:ed)?|bold|fonts)=(on|off|1|0|true|false|toggle)/, function(_, k, v) {
@@ -473,7 +555,23 @@ if (typeof Script === 'object') {
                     dummy.innerHTML="<div class=row><pre>"+encode(str)+"</pre></div>",output.appendChild(dummy.firstChild);
                 else if (mode==="html")
                     dummy.innerHTML="<div class=row>"+encode(str)+"</div>",output.appendChild(dummy.firstChild);
-                else if (mode==="styles")
+                else if (mode==="write")
+                    dummy.innerHTML="<div class=row>"+str+"</div>",output.appendChild(dummy.firstChild);
+                else if (mode==='chat') {
+                    var html = encode(str);
+                    var urls = [];
+                    // inspired by https://stackoverflow.com/a/21127872/1684079
+                    [/"((?:(?:about|qrc|hifi|data):|(?:https?|ftp|file|atp):\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])"/ig,
+                    /(\b(?:(?:about|qrc|hifi|data):|(?:https?|ftp|file|atp):\/\/)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,
+                     /\bjavascript:[-(){}$A-Z0-9+&@#\/%?=~_|!:,.; ]+;;/ig].reduce(function(urls, regexp) {
+                         while (matches = regexp.exec(html))
+                             urls.push(matches[1]||matches[0]);
+                         return urls;
+                     }, []).forEach(function(raw) {
+                         html = html.replace(raw, '<a onclick="EventBridge.emitWebEvent(JSON.stringify({url:this.dataset.url}))" data-url="URL" href="#" title="URL">URL</a>'.replace(/URL/g, raw));
+                     });
+                    dummy.innerHTML="<div class=row>"+html+"</div>",output.appendChild(dummy.firstChild);
+                } else if (mode==="styles")
                     styles.innerText = str;
                 else if (mode==="style")
                     userstyles.innerText = str;
@@ -535,6 +633,33 @@ if (typeof Script === 'object') {
                 onmsg(":text:body.className="+document.body.className);
             };
             onerror = function(e)  { console.error('onerror:'+e); }
+            var ci=0,down=false;
+            function checkselection() {
+                ci && clearTimeout(ci);
+                ci = setTimeout(function() {
+                    ci = 0;
+                    COPY.className = window.getSelection().toString() ? "enabled" : "";
+                }, 100);
+            }
+            window.onfocus = window.onblur = document.body.onkeyup = checkselection;
+            document.body.onmousemove = function() { down && checkselection(); };
+            document.body.onmousedown = document.body.ontouchstart = function() { down = true; checkselection(); };
+            document.body.onmouseup = document.body.ontouchend = function() { down = false; checkselection(); };
+            var alt = 0;
+            CLEAR.onmouseup = CLEAR.ontouchend = CLEAR.ontouchcancel = CLEAR.onmouseexit = CLEAR.onmouseleave = CLEAR.onmouseout = cancelAlt;
+            function cancelAlt() {
+                console.info('cancel alt');
+                alt && clearTimeout(alt);
+                alt = 0;
+            };
+            CLEAR.onmousedown = CLEAR.ontouchstart = function() {
+                console.info('pending alt');
+                cancelAlt();
+                alt = setTimeout(function() {
+                    alt = 0;
+                    confirm('terminate script?') && EventBridge.emitWebEvent('terminate');
+                }, 2000);
+            };
         },ms);
         function encode(r){
             r = r+'';

@@ -46,6 +46,9 @@
         #uicfg button { font-family: monospace; font-size: 10px; border-radius:4px; border: solid 2px #333; }
         #CLEAR:hover { font-weight:bold; background-color: #f00; }
         #CLEAR { color:white; background-color: #b33;position: fixed; right: 0; top: 0; z-index:9; border-bottom-left-radius: 8px; border-left: solid 1px gray;border-top: solid 1px gray;}
+        #COPY:hover { font-weight:bold; background-color: #00f; }
+        #COPY { display:none; color:white; background-color: #33b;position: fixed; right: 0; bottom: 0; z-index:9; border-bottom-right-radius: 8px; border-left: solid 1px gray;border-top: solid 1px gray;}
+        #COPY.enabled { display: block; }
         * { -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important; -webkit-focus-ring-color: rgba(255, 255, 255, 0) !important; outline: none !important; }
         #uicfg button[onclick*="bold"] { background-color: gray; text-transform: lowercase; }
         .bold #uicfg button[onclick*="bold"] { background-color: white; text-transform: uppercase;}
@@ -69,6 +72,7 @@
   </head>
   <body>
     <button id=CLEAR onclick='onmsg(":clear:")'>CLEAR</button>
+    <button id=COPY onclick='onmsg(":copy:"+window.getSelection())'>copy to clipboard</button>
     <div id=uicfg style=display:none>
       <button onclick=invert(this)>&nbsp;</button>
       <button onclick=bold(this)>b</button>
