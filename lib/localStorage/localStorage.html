@@ -26,7 +26,7 @@ onerror = function(evt) {
     console.error('ERROR: localStorage:' +[evt.message,evt.stack,'@'+location.href]);
 };
 
-window.addEventListener('load', function() {
+window.addEventListener('DOMContentLoaded', function() {
     if (!window.qt)
         throw new Error('!window.qt ' + window.EventBridge);
 
@@ -60,7 +60,7 @@ function initialize() {
         console.error('!EventBridge.scriptEventReceived ' + EventBridge.scriptEventReceived);
         throw new Error('!EventBridge.scriptEventReceived ' + Object.keys(Object(EventBridge)));
     }
-    console.info('localStorage.initialize bridge:' + EventBridge+ ' .scriptEventReceived:' + EventBridge.scriptEventReceived);
+    console.info('... localStorage.initialize bridge:' + EventBridge+ ' .scriptEventReceived:' + EventBridge.scriptEventReceived);
     EventBridge.scriptEventReceived.connect(function(raw){
         log('scriptEventReceived', (raw+'').substr(0,100));
         try {
