@@ -12,34 +12,53 @@
 -->
   <head>
     <title>localStorage connector</title>
-    <script>
-        if (!window.EventBridge && !window.QWebChannel && window.qt)
-          document.write('<SCR src="qrc:///qtwebchannel/qwebchannel.js"></SCR>'.replace(/SCR/g,'script'));
-    </script>
     <script>;
 function log() {
     var out = [].slice.call(arguments).join(' ');
-    debug.value = debug.value.split('\n').slice(-10).concat(out).join('\n');
+    var debug = document.getElementById('debug');
+    if (debug) {
+        debug.value = debug.value.split('\n').slice(-10).concat(out).join('\n');
+    }
 }
 
 
 onerror = function(evt) {
-    console.error('localStorage error:' +[evt.message,evt.stack]);
+    console.error('ERROR: localStorage:' +[evt.message,evt.stack]);
 };
 
-if (window.EventBridge)
-    initialize();
-else if (window.qt)
-    new QWebChannel(qt.webChannelTransport, function(channel) {
-        EventBridge = channel.objects.eventBridgeWrapper.eventBridge;
-        initialize();
-    });
-else
-    throw new Error('!qt');
+window.addEventListener('load', function() {
+    if (!window.qt)
+        throw new Error('!window.qt ' + window.EventBridge);
+
+    if (!window.EventBridge && !window.QWebChannel && window.qt) {
+        console.info('including qwebchannel.js');
+        document.write('<SCR src="qrc:///qtwebchannel/qwebchannel.js"></SCR>'.replace(/SCR/g,'script'));
+        setTimeout(ready, 1000);
+    } else {
+        ready();
+    }
+    function ready() {
+        if (window.EventBridge) {
+            initialize();
+        } else if (window.qt) {
+            console.info('manually creating EventBridge from qt.webChannelTransport');
+            new QWebChannel(qt.webChannelTransport, function(channel) {
+                EventBridge = channel.objects.eventBridge || channel.objects.eventBridgeWrapper.eventBridge;
+                initialize();
+            });
+        }
+    }
+});
 
 function initialize() {
+    //console.info('localStorage -- initialize ' + window.EventBridge);
+    if (!window.EventBridge)
+        throw new Error('!window.EventBridge');
+    if (!EventBridge.scriptEventReceived)
+        throw new Error('!EventBridge.scriptEventReceived ' + Object.keys(EventBridge));
+    console.info('localStorage.initialize bridge:' + EventBridge+ ' .scriptEventReceived:' + typeof EventBridge.scriptEventReceived);
     EventBridge.scriptEventReceived.connect(function(raw){
-        log('scriptEventReceived', raw);
+        log('scriptEventReceived', (raw+'').substr(0,100));
         try {
             var msg = JSON.parse(raw);
             if (msg.id === 'confirm')
@@ -73,7 +92,7 @@ window.addEventListener('DOMContentLoaded', window.onresize = function() {
 });
     </script>
     <style>
-      body { overflow: hidden; width: 640px; margin:0; padding:0 }
+      body { overflow: hidden; background: gray; width: 640px; margin:0; padding:0 }
       textarea { margin: 0; white-space: nowrap;  }
     </style>
   </head>
