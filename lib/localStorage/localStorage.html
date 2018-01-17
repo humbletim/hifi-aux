@@ -23,7 +23,7 @@ function log() {
 
 
 onerror = function(evt) {
-    console.error('ERROR: localStorage:' +[evt.message,evt.stack]);
+    console.error('ERROR: localStorage:' +[evt.message,evt.stack,'@'+location.href]);
 };
 
 window.addEventListener('load', function() {
@@ -52,11 +52,15 @@ window.addEventListener('load', function() {
 
 function initialize() {
     //console.info('localStorage -- initialize ' + window.EventBridge);
-    if (!window.EventBridge)
+    if (!window.EventBridge) {
+        console.error('!window.EventBridge ' + window.EventBridge);
         throw new Error('!window.EventBridge');
-    if (!EventBridge.scriptEventReceived)
-        throw new Error('!EventBridge.scriptEventReceived ' + Object.keys(EventBridge));
-    console.info('localStorage.initialize bridge:' + EventBridge+ ' .scriptEventReceived:' + typeof EventBridge.scriptEventReceived);
+    }
+    if (!EventBridge.scriptEventReceived) {
+        console.error('!EventBridge.scriptEventReceived ' + EventBridge.scriptEventReceived);
+        throw new Error('!EventBridge.scriptEventReceived ' + Object.keys(Object(EventBridge)));
+    }
+    console.info('localStorage.initialize bridge:' + EventBridge+ ' .scriptEventReceived:' + EventBridge.scriptEventReceived);
     EventBridge.scriptEventReceived.connect(function(raw){
         log('scriptEventReceived', (raw+'').substr(0,100));
         try {
