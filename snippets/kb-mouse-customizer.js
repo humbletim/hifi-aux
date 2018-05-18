@@ -1,3 +1,4 @@
+location.protocolVersion = Window.protocolSignature;
 // work in progress
 
 // -------------------------------------------------------------------
@@ -310,7 +311,8 @@ if (params.dump)
 
 var oid = Overlays.addOverlay('text', {
     text: '     '+spec,
-    font: { size: 15 },
+    font: { size: 8 },
+    y: -10,
     color: { red: 0x11, green: 0x11, blue: 0x11 },
     backgroundColor: { red: 0xff, green: 0xff, blue: 0xff },
 });
@@ -353,8 +355,10 @@ Controller.mousePressEvent.connect(ifoverlay);
 Script.scriptEnding.connect(Controller.mousePressEvent.disconnect.bind(Controller.mousePressEvent, ifoverlay));
 
 var ts = Overlays.textSize(oid, spec);
-ts.x = Overlays.width()/2 - ts.width/2;
+ts.x = Overlays.width() - ts.width/2;
 ts.y = 0;//Overlays.height() - ts.height;
+ts.height = ts.height / 2 * 1.2;
+ts.width *= .8;
 Overlays.editOverlay(oid, ts);
 
 var mapping = Controller.parseMapping(json)

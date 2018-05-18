@@ -17,7 +17,7 @@ ProtocolVersions.getTag = function(protocolVersion, def) {
     return (this.get(protocolVersion)||{tag:def}).tag;
 };
 ProtocolVersions.get = function(protocolVersion) {
-    return this.fromProtocolVersion(protocolVersion || location.protocolVersion());
+    return this.fromProtocolVersion(protocolVersion || (location.protocolVersion ? location.protocolVersion() : Window.protocolSignature() );
 };
 ProtocolVersions.fromTag = function(tag) { return VERSIONS.byTag[tag]; }
 ProtocolVersions.fromRelease = function(rel) { return VERSIONS.byRelease[tag]; }
