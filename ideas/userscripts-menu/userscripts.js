@@ -18,10 +18,7 @@ var SAMPLE_LOCALSTORAGE = [ "http://google.com # Google" ];
 var LOCALSTORAGE_HTML = Settings.getValue('localStorage.html');
 var LOCALSTORAGE_KEY = 'userscripts';
 
-Script.include(
-    'https://cdn.rawgit.com/humbletim/hifi-aux/c91ae279/lib/localStorage/localStorage.js' +
-        (LOCALSTORAGE_HTML ? '#html=' + LOCALSTORAGE_HTML : '')
-);
+Script.include(Script.resolvePath('../../lib/localStorage/localStorage.js' + (LOCALSTORAGE_HTML ? '#html=' + LOCALSTORAGE_HTML : '')));
 
 Function.prototype.bind = Function.prototype.bind||function(){var fn=this,s=[].slice,a=s.call(arguments),o=a.shift();return function(){return fn.apply(o,a.concat(s.call(arguments)))}};
 
@@ -183,7 +180,7 @@ function getUserScripts() {
 var ctx = {
     menuItemEvent: function(name) {
         var m = menus.get(name);
-        if (!m) return log('menuItemEvent', name);
+        if (!m) return 0&&log('menuItemEvent', name);
 
         log('/menuItemEvent', JSON.stringify(m,0,2));
 
@@ -322,7 +319,7 @@ function edit_localStorage_menu(m) {
         }
     });
     win.setURL('data:text/html;text,' + [
-        '<script src="qrc:///qtwebchannel/qwebchannel.js"></script>',
+        //'<script src="qrc:///qtwebchannel/qwebchannel.js"></script>',
         '<script>('+function() {
             save = function() {
                 _status.innerHTML = 'saving...';
@@ -338,8 +335,12 @@ function edit_localStorage_menu(m) {
                 });
             };
             reset = function(force) { EventBridge.emitWebEvent(JSON.stringify({reset:force||'confirm'})); };
-            new QWebChannel(qt.webChannelTransport, function(channel) {
-                EventBridge = channel.objects.eventBridgeWrapper.eventBridge;
+            window.onresize = function() {
+                userscripts.style.width = (innerWidth)+'px';
+                userscripts.style.height = (innerHeight - userscripts.offsetTop)+'px';
+            };
+            window.addEventListener('DOMContentLoaded', window.onresize);
+            window.addEventListener('DOMContentLoaded', function() {
                 EventBridge.scriptEventReceived.connect(function(x){
                     var msg = JSON.parse(x);
                     if ('status' in msg)
@@ -352,11 +353,6 @@ function edit_localStorage_menu(m) {
                 });
                 reset(true);
             });
-            window.onresize = function() {
-                userscripts.style.width = (innerWidth)+'px';
-                userscripts.style.height = (innerHeight - userscripts.offsetTop)+'px';
-            };
-            window.addEventListener('DOMContentLoaded', window.onresize);
         }+')();</script>',
         '<style>',
         'body { overflow: hidden; width: 640px; margin:0; padding:0 }',
