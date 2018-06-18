@@ -169,7 +169,7 @@ function earmark(thing) {
             var $constructor = thing.$constructor || ((thing+'').split('(')[0]).replace(/\[object Object\]|undefined/g,'');
             if($constructor) Object.defineProperty(thing, '$constructor', {
                 configurable: true,
-                enumerable: true,
+                enumerable: false,
                 value: $constructor
             });
         }
