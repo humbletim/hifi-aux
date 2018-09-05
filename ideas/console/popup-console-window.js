@@ -429,7 +429,7 @@ if (typeof Script === 'object') {
                     return ignore('this.visible==='+this.visible);
                 if (this.options.autoshow)
                     return ignore('autoshow==='+this.options.autoshow + ' (window will be reshown with any next console log entry)');
-                if (this.options.destroyOnClose === false)
+                if (this.options.destroyOnClose+'' == 'false')
                     return ignore('destroyOnClose === '+this.options.destroyOnClose);
                 try {
                     var roving = Toolbars.getToolbar('com.highfidelity.interface.toolbar.system').readProperty('width') < 100;
@@ -612,9 +612,12 @@ if (typeof Script === 'object') {
                 //     hljs.highlightBlock([].slice.call(document.querySelectorAll('pre code')).pop());
                 // }
                 else console.error(["errrm",msg]);
-                document.body.scrollTop = document.body.scrollHeight*2;
-                while(output.childNodes.length > 2048)
-                    output.removeChild(output.firstChild);
+
+                if (!window.getSelection().toString()) {
+                    while(output.childNodes.length > 2048)
+                        output.removeChild(output.firstChild);
+                    window.scrollTo(0, 1e10);
+                }
             });
             onmsg(":print:EventBridge bridged");
             EventBridge.emitWebEvent("ready");
