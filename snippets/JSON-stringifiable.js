@@ -97,6 +97,18 @@ function make_replacer(options) {
                     }
                 });
 
+            if (value instanceof ArrayBuffer)
+                return '[ArrayBuffer byteLength='+value.byteLength+']';
+            if (value instanceof Float32Array)
+                return '[Float32Array length='+value.length+']';
+            if (value instanceof Uint32Array)
+                return '[Uint32Array length='+value.length+']';
+            if (value instanceof Uint16Array)
+                return '[Uint16Array length='+value.length+']';
+            if (value instanceof Uint8Array)
+                return '[Uint8Array length='+value.length+']';
+            if (value instanceof Date)
+                return JSON.parse(JSON.stringify(value));
             if (value instanceof Error) {
                 var ob = {};
                 'type,message,stack,filename,linenumber,lineno,linenum,linenumber,sourceId'
@@ -177,3 +189,15 @@ function earmark(thing) {
     return thing;
 };
 
+try {
+    module.exports = {
+        stringified: JSON.stringified,
+        stringifiable: JSON.stringifiable,
+        toPOJO: function(obj, options) {
+            options = options || {}
+            options.maxDepth = options.maxDepth || 10;
+            options.maxComplexity = options.maxComplexity || 10000;
+            return JSON.stringified(obj, options);
+        },
+    };
+} catch(e) {}
