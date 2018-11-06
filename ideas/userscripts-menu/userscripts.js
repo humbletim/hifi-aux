@@ -146,7 +146,7 @@ loadJSON(Script.resolvePath('userscripts.json'), function(err, data) {
     localStorage.$ready(function() {
         users['(localStorage)'] = getUserScripts();
         users['(localStorage)'].push(":edit_localStorage_menu # Edit (localStorage) menu...");
-        log('LOADING', JSON.stringify(users,0,2));
+        //debug('LOADING', JSON.stringify(users,0,2));
         menus._load(users);
     });
 });
@@ -273,7 +273,7 @@ function loadJSON(url, callback) {
     xhr.open('GET', url, true);
     xhr.onreadystatechange = function(a,b,c) {
         if (this.readyState === this.DONE) {
-            log('onload', this+'', this.responseText, (this.responseText||'').length);
+            //debug('onload', this+'', this.responseText, (this.responseText||'').length);
             try {
                 var json = JSON.parse(xhr.responseText||'{}');
             }
