@@ -50,13 +50,14 @@ function HighlightJSWindow(options) {
 (1,eval)('this').HighlightJSWindow = HighlightJSWindow;
 try { module.exports = HighlightJSWindow; } catch(e) {}
 
+if (0) {
 try { throw new Error('stack'); } catch(e) {
     var filename = e.fileName;
     Script.include('extract-parameters.js#hjs');
     Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
     try { ua.used(extractParameters(e.fileName)); } catch(e) { }
 }
-
+}
 /* known hljs themes to try out (not all might be available via CDN though)
 
 default, agate, androidstudio, arduino-light, arta, ascetic,
