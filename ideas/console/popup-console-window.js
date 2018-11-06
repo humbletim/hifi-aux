@@ -17,8 +17,8 @@ if (typeof Script === 'object') {
     var params;
     try { throw new Error('stack'); } catch(e) {
         params = extractParameters(e.fileName);
-        Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
-        try { ua.used(params); } catch(e) { log(e); }
+        //Script.include('http://cdn.xoigo.com/hifi/analytics.min.js');
+        //try { ua.used(params); } catch(e) { log(e); }
     }
 
     var _FONTS = ["Indie Flower", "Coming Soon", "Neucha", "Bad Script", "Nothing You Could Do", "Electrolize","Orbitron","Russo One","Allerta Stencil", "Architects Daughter", "Space Mono", "Inconsolata", "Share Tech Mono", "Nova Mono", "Open Sans", "Roboto", "Lato", "PT Sans", "Source Sans Pro", "Exo", "Exo 2", "Ubuntu", "Istok Web", "Nobile"];
@@ -28,7 +28,7 @@ if (typeof Script === 'object') {
 
     var defaultOptions = {
         title: 'popup console logger',
-        shortcutKey: 'Ctrl+Shift+I',
+        //shortcutKey: 'Ctrl+Shift+I',
         visible: true,
         width: glm.clamp(Overlays.width()*.8, 320, 800),
         height: glm.clamp(Overlays.height()*.8, 240, 600),
