@@ -235,7 +235,13 @@ FocusScope {
         onMenuItemEvent: menuItem === menuname && onSnapshotTaken()
     }
 
-    function show(b) { window.shown = b; }
+    function show(b) {
+        try {
+            window.shown = b;
+        } catch(e) {
+            console.error('show...', b, e);
+        }
+    }
 
     /*
     Connections {

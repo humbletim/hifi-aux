@@ -6,12 +6,13 @@
 //     and offers to upload the latest one via ATP and generate an in-world
 //     photoframe from it
 
-Script.include(Script.resolvePath('addFrame.js'));
-Script.include(Script.resolvePath('observeLocation.js'));
+Script.require.debug = true;
+var addFrame = Script.require('./addFrame.js');
+var observeLocation = Script.require('./observeLocation.js');
 
 function log() { print('[SnapshotRezzer]', [].slice.call(arguments).join(' ')); }
 
-var modelURL = 'http://cdn.xoigo.com/hifi/pod_frame.fbx#20160712';
+var modelURL = 'http://192.241.189.145:8083/hifi/pod_frame.fbx#20160712';
 
 var qmlURL = Script.resolvePath('').replace('.js','.qml');
 
@@ -22,13 +23,16 @@ var window = new OverlayWindow({
     source: qmlURL + cache_buster,
     width: 480,
     height: 320,
-    title: 'SnapshotRezzer v0.0.3'
+    title: 'SnapshotRezzer v0.0.4'
 });
 
 window.fromQml.connect(function(event) {
-    if (event.type === 'addFrame')
+    if (event.type === 'addFrame') {
+        event.callback = function(frame) {
+            window.sendToQml({ type: 'frameAdded', uuid: frame });
+        };
         addFrame(event);
-    else if (event.type === 'close') {
+    } else if (event.type === 'close') {
         window.close();
         Script.stop();
     }
